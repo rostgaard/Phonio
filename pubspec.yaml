@@ -1,0 +1,8 @@
+name: Phonio
+description: A basic framework for interfacing with SIP phones.
+dependencies:
+  logging: any
+  shelf: any
+  shelf_exception_response: any
+  shelf_route: any
+  shelf_web_socket: any
