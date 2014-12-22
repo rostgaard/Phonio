@@ -6,6 +6,12 @@ abstract class SIPPhone {
 
   int get ID => this.hashCode;
 
+  StreamController<Event> _eventController = new StreamController.broadcast();
+
+  Stream<Event> get eventStream => this._eventController.stream;
+
+  void _addEvent (Event event) => this._eventController.add(event);
+
   @override
   bool operator == (SIPPhone other) => this.ID == other.ID;
 

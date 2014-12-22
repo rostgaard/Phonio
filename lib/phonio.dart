@@ -11,6 +11,14 @@ import 'dart:collection';
 import 'package:logging/logging.dart';
 
 part 'phonio-call.dart';
+part 'phonio-event.dart';
+part 'event/event-call_connected.dart';
+part 'event/event-call_disconnected.dart';
+part 'event/event-call_incoming.dart';
+part 'event/event-call_invite.dart';
+part 'event/event-call_outgoing.dart';
+part 'event/event-dnd.dart';
+part 'event/event-hook.dart';
 part 'phonio-pjsua_process.dart';
 part 'phonio-sip_account.dart';
 part 'phonio-sip_phone.dart';

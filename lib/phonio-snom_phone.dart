@@ -80,8 +80,6 @@ class SNOMPhone extends SIPPhone {
 
   List<SIPAccount> accounts   = [];
 
-
-
   /// TODO: Implement.
   SIPAccount get defaultAccount => throw new StateError('Not implemented!');
 
@@ -102,19 +100,15 @@ class SNOMPhone extends SIPPhone {
    */
   Map toJson() => this.asMap;
 
-  StreamController<String> _eventController = new StreamController.broadcast();
-
-  Stream<String> get eventStream => this._eventController.stream;
   bool get connected => this._host != null;
-
-  void addEvent (String event) => this._eventController.add(event);
 
   SNOMPhone(this._host);
 
   /**
    * XXX: take into account the actual call.
    */
-  Future hangup(Call call) => this.hangupCurrentCall();
+  Future hangup(Call call) =>
+      throw new UnsupportedError('SNOM phones can only hang up the current call');
 
   Future hold() {
     SNOMHTTPRequest request = new SNOMHTTPRequest()
@@ -169,12 +163,23 @@ class SNOMPhone extends SIPPhone {
 
 
   Future<Call> originate (String extension, {SIPAccount account : null}) {
+      Completer<Call> completer = new Completer();
+
       SNOMHTTPRequest request = new SNOMHTTPRequest()
                       ..method = 'POST'
                       ..uri    = SNOMResource.Dial(this._host)
                       ..body   = "NUMBER:$extension";
 
-    return this._enqueue(request).then((_) => new Call());
+    this.eventStream.firstWhere((Event event) => event is CallOutgoing)
+       .then((CallOutgoing e) {
+          Call call = new Call(e.callID, e.callee, false);
+          completer.complete(call);
+       })
+       .catchError((error, stackTrace) => completer.completeError(error, stackTrace));
+
+     this._enqueue(request);
+
+    return completer.future;
   }
 
   /**
@@ -237,7 +242,7 @@ class HTTPClientWrapper {
    * HTTP GET.
    */
   Future<String> get(Uri resource) {
-    log.finest(resource);
+    log.finest('GET $resource');
 
 
     final Completer<String> completer = new Completer<String>();

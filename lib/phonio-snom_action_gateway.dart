@@ -139,8 +139,11 @@ class SNOMActionGateway {
    *
    */
   Response callOutgoing(Request request) {
+
     this.phones[SNOMparameters.user(request)]
-    .addEvent("OUTGOING CALL id: ${SNOMparameters.callID(request)} callee: ${SNOMparameters.callee(request)}");
+    ._addEvent(new CallOutgoing
+        (SNOMparameters.callID(request),
+         SNOMparameters.callee(request)));
 
     return new Response.ok('');
   }
@@ -149,8 +152,14 @@ class SNOMActionGateway {
    *
    */
   Response dnd(Request request) {
+    bool dnd = null;
+    if (SNOMparameters.dnd(request).toLowerCase() == 'on')
+      dnd = true;
+    else if (SNOMparameters.dnd(request).toLowerCase() == 'off')
+      dnd = false;
+
     this.phones[SNOMparameters.user(request)]
-      .addEvent("DND ${SNOMparameters.dnd(request)}");
+      ._addEvent(new DND(dnd));
 
     return new Response.ok('');
   }
@@ -160,7 +169,8 @@ class SNOMActionGateway {
    */
   Response callInvite(Request request) {
     this.phones[SNOMparameters.user(request)]
-      .addEvent("INVITE ${SNOMparameters.callee(request)}");
+      ._addEvent(new CallInvite(SNOMparameters.callID(request),
+                                SNOMparameters.callee(request)));
 
     return new Response.ok('');
   }
@@ -170,7 +180,7 @@ class SNOMActionGateway {
    */
   Response callConnected(Request request) {
     this.phones[SNOMparameters.user(request)]
-      .addEvent("CONNECTED ${SNOMparameters.callID(request)}");
+      ._addEvent(new CallConnected(SNOMparameters.callID(request)));
 
     return new Response.ok('');
   }
@@ -181,7 +191,7 @@ class SNOMActionGateway {
    */
   Response callDisconnected(Request request) {
     this.phones[SNOMparameters.user(request)]
-      .addEvent("DISCONNECTED ${SNOMparameters.callID(request)}");
+    ._addEvent(new CallDisconnected(SNOMparameters.callID(request)));
 
     return new Response.ok('');
   }
@@ -191,8 +201,13 @@ class SNOMActionGateway {
    *
    */
   Response hook(Request request) {
-    this.phones[SNOMparameters.user(request)]
-      .addEvent("HOOK ${SNOMparameters.hook(request)}");
+    bool hook = null;
+    if (SNOMparameters.hook(request).toLowerCase() == 'on')
+      hook = true;
+    else if (SNOMparameters.hook(request).toLowerCase() == 'off')
+      hook = false;
+
+    this.phones[SNOMparameters.user(request)]._addEvent(new DND(hook));
 
     return new Response.ok('');
   }
@@ -202,7 +217,8 @@ class SNOMActionGateway {
    */
   Response callIncoming(Request request) {
     this.phones[SNOMparameters.user(request)]
-      .addEvent("INCOMING CALL id: ${SNOMparameters.callID(request)} callee: ${SNOMparameters.callee(request)}");
+      ._addEvent(new CallIncoming(SNOMparameters.callID(request),
+                                  SNOMparameters.callee(request)));
 
     return new Response.ok('');
   }
@@ -228,7 +244,7 @@ abstract class SNOMparameters {
       route.getPathParameters(request)['dnd_state'];
 
   static String hook(Request request)   =>
-      request.requestedUri.queryParameters[SNOM.PARAM_HOOK];
+      route.getPathParameters(request)['hook_state'];
 
   static String callee(Request request) =>
       request.requestedUri.queryParameters[SNOM.PARAM_CALLEE];
