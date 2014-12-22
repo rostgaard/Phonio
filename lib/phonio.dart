@@ -19,7 +19,7 @@ part 'event/event-call_invite.dart';
 part 'event/event-call_outgoing.dart';
 part 'event/event-dnd.dart';
 part 'event/event-hook.dart';
-part 'phonio-pjsua_process.dart';
+//part 'phonio-pjsua_process.dart'; //The file does not exists in Git yet.
 part 'phonio-sip_account.dart';
 part 'phonio-sip_phone.dart';
 part 'phonio-snom_phone.dart';
