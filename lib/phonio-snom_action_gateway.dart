@@ -7,6 +7,8 @@ class SNOMActionGateway {
   SNOMActionGateway (this.phones);
   String host = null;
 
+  IO.HttpServer server;
+
   /**
    * TODO: Figure out a way to extract the effective external IP.
    */
@@ -29,9 +31,11 @@ class SNOMActionGateway {
 
     route.printRoutes(router);
 
+
+
     return shelf_io.serve(handler, hostname, port).then((server) {
       this.host = 'http://${server.address.host}:${server.port}';
-
+      this.server = server;
       print('Serving at ${this.host}');
     });
   }
