@@ -78,7 +78,8 @@ class PJSUAProcess extends SIPPhone {
 
     Future release(Call call) => new Future.error(new UnimplementedError());
 
-    Future transfer(Call destination) => new Future.error(new UnimplementedError());
+    //TODO: Check return value of hangupAll.
+    Future transfer(Call destination) => this.hangupAllCalls();
 
     Future<String> registerAccount() => this._subscribeAndSend(PJSUACommand.REGISTER);
 
