@@ -21,6 +21,8 @@ class SNOMActionGateway {
         ..get(SNOMActionURL.KEY_ACTION_INCOMING,       this.callInvite)
         ..get(SNOMActionURL.CONN,    this.callConnected)
         ..get(SNOMActionURL.DISCONN, this.callDisconnected)
+        ..get(SNOMActionURL.LOG_ON,  this.accountLogon)
+        ..get(SNOMActionURL.LOG_OFF, this.accountLogff)
          ..get('/phone/list',        this.list)
         ..get('/phone/{id}',        this.get);
 
@@ -139,6 +141,35 @@ class SNOMActionGateway {
       '&${SNOMActionURL.CallIDKV}',
   };
 
+
+  Future stop({bool force: false}) => this.server.close(force: force);
+
+
+  /**
+   * Called whenever a phone successfully logs in an account.
+   * Parameters:
+   *   uid : the id of the account that was logged in
+   */
+  Response accountLogon(Request request) {
+
+    this.phones[SNOMparameters.user(request)]
+    ._addEvent(new AccountState (SNOMparameters.user(request), true));
+
+    return new Response.ok('');
+  }
+
+  /**
+   * Called whenever a phone successfully logs out of an account.
+   * Parameters:
+   *   uid : the id of the account that was logged in
+   */
+  Response accountLogff(Request request) {
+
+    this.phones[SNOMparameters.user(request)]
+    ._addEvent(new AccountState (SNOMparameters.user(request), false));
+
+    return new Response.ok('');
+  }
   /**
    *
    */
