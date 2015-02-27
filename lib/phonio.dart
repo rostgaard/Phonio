@@ -12,6 +12,8 @@ import 'package:logging/logging.dart';
 
 part 'phonio-call.dart';
 part 'phonio-event.dart';
+
+part 'event/event-account_state.dart';
 part 'event/event-call_connected.dart';
 part 'event/event-call_disconnected.dart';
 part 'event/event-call_incoming.dart';
