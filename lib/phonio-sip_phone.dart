@@ -28,7 +28,11 @@ abstract class SIPPhone {
 
   Future<Call> originate (String extension, {SIPAccount account : null});
 
-  Future hangup(Call call);
+  Future hangup();
+
+  Future hangupAll();
+
+  Future hangupSpecific(Call call);
 
   Future hold();
 

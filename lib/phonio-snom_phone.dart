@@ -104,11 +104,14 @@ class SNOMPhone extends SIPPhone {
 
   SNOMPhone(this._host);
 
-  /**
-   * XXX: take into account the actual call.
-   */
-  Future hangup(Call call) =>
-      throw new UnsupportedError('SNOM phones can only hang up the current call');
+  Future hangup() => this.hangupCurrentCall();
+
+  Future hangupSpecific(Call call) => new Future.error(new UnimplementedError());
+
+  Future hangupAll() {
+    log.shout('The hangupAll() method is inpure and only hangs up the current call');
+    return this.hangupCurrentCall();
+  }
 
   Future hold() {
     SNOMHTTPRequest request = new SNOMHTTPRequest()
@@ -250,12 +253,11 @@ class HTTPClientWrapper {
   Future<String> get(Uri resource) {
     log.finest('GET $resource');
 
-
     final Completer<String> completer = new Completer<String>();
 
     client.getUrl(resource).then((IO.HttpClientRequest request) {
         request.headers.set(IO.HttpHeaders.CONNECTION, 'keep-alive');
-        request.close();
+        return request.close();
       }).then((IO.HttpClientResponse response) {
 
       String buffer = "";
@@ -313,7 +315,7 @@ class HTTPClientWrapper {
           completer.complete(buffer);
         });
       } else {
-        completer.completeError(new StateError('Bad response from server: ${response.statusCode}'));
+        completer.completeError(new StateError('Bad response from server: ${response.headers}'));
       }
     });
 
