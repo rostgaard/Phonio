@@ -118,6 +118,12 @@ class SNOMPhone extends SIPPhone {
     return this._enqueue(request);
   }
 
+  Future<bool> isSnomEmbeddedServer() {
+
+    return this._client.getResponse(this._host)
+        .then((IO.HttpClientResponse response) =>
+            response.headers.value('server').contains('snom embedded'));
+  }
 
   Future setActionURL (Map<String, String> actionURLs) {
     String buf = '';
@@ -265,6 +271,16 @@ class HTTPClientWrapper {
 
     return completer.future;
 
+  }
+
+  /**
+   * HTTP response.
+   */
+  Future<IO.HttpClientResponse> getResponse(Uri resource) {
+    log.finest('GET $resource');
+
+    return client.getUrl(resource).then((IO.HttpClientRequest request) =>
+        request.close());
   }
 
   /**
