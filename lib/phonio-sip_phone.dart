@@ -24,6 +24,10 @@ abstract class SIPPhone {
 
   List<SIPAccount> _accounts = [];
 
+  void addAccount(SIPAccount account) =>
+    this._accounts.add(account);
+
+
   SIPAccount get defaultAccount;
 
   Future autoAnswer(bool enabled, {SIPAccount account : null});
