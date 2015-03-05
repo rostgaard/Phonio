@@ -78,7 +78,12 @@ class SNOMPhone extends SIPPhone {
   final Logger log                = new Logger(SNOMPhone.classname);
   final HTTPClientWrapper _client = new HTTPClientWrapper();
 
+  /// Default sip port. Change if needed.
+  int port = 5060;
+
   List<SIPAccount> accounts   = [];
+
+  String get contact => '${this.defaultAccount.inContactFormat}:${this.port}';
 
   /// TODO: Implement.
   SIPAccount get defaultAccount => throw new StateError('Not implemented!');
