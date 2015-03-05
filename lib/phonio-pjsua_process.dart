@@ -178,20 +178,32 @@ class PJSUAProcess extends SIPPhone {
         if(map['event'] == PJSUAEvent.READY) {
           this._readyCompleter.complete();
 
-        } else if(map['event'] == PJSUAEvent.OUTGOING_CALL) {
+        }
+
+        else if(map['event'] == PJSUAEvent.OUTGOING_CALL) {
           //TODO: Extract callID or similar.
 
           Event outEvent = new CallOutgoing(map['call']['id'].toString(), map['call']['extension']);
 
           this._addEvent(outEvent);
 
-        } else if(map['event'] == PJSUAEvent.INCOMING_CALL) {
+        }
+
+        else if(map['event'] == PJSUAEvent.INCOMING_CALL) {
           //TODO: Extract callID or similar.
           Event inEvent = new CallIncoming(map['call']['id'].toString(), map['call']['extension']);
 
           this._addEvent(inEvent);
+        }
+        else if(map['event'] == "CALL_TSX_STATE") {
+          //Ignore these for now.
+        }
 
-        } else {
+        else if(map['event'] == "CALL_STATE") {
+            //Ignore these for now.
+        }
+
+        else {
           log.severe('Unknown message: "$line"');
         }
 
