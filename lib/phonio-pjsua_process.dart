@@ -79,6 +79,8 @@ class PJSUAProcess extends SIPPhone {
     //TODO: Check return value of hangup.
     Future hangup() => hangupCurrentCall();
 
+    Future answer() => this._subscribeAndSend(PJSUACommand.ANSWER_CALL);
+
     Future hangupSpecific(Call call) => new Future.error(new UnimplementedError());
 
     //TODO: Check return value of hangupAll.

@@ -118,6 +118,14 @@ class SNOMPhone extends SIPPhone {
     return this.hangupCurrentCall();
   }
 
+  Future answer () {
+    SNOMHTTPRequest request = new SNOMHTTPRequest()
+      ..method = 'GET'
+      ..uri    = SNOMResource.Command(this._host, SNOMKey.F_HOLD);
+
+    return this._enqueue(request);
+  }
+
   Future hold() {
     SNOMHTTPRequest request = new SNOMHTTPRequest()
                       ..method = 'GET'
