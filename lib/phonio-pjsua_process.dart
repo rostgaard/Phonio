@@ -239,24 +239,6 @@ class PJSUAProcess extends SIPPhone {
       return this._process.exitCode;
     }
 
-    Future startProcess () {
-      List<String> arguments =  ['1002', '1234', '192.168.1.136', '5071'];
-      return IO.Process.start(this.binaryPath , arguments)
-        .then((IO.Process process) {
-          this._process = process;
-          this._process.stdout
-            .transform (new Utf8Decoder())
-            .transform (new LineSplitter())
-            .listen (this._parseAndDispatch);
-        });
-    }
-
-
-    Future restartProcess () {
-        this.quitProcess();
-        return this.startProcess();
-    }
-
     Future waitFor (String line, {int timeoutSeconds : 10}) =>
         new Future (() => throw new StateError('Not implemented!'));
  }
