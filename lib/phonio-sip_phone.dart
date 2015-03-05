@@ -6,6 +6,8 @@ abstract class SIPPhone {
 
   int get ID => this.hashCode;
 
+  String get contact;
+
   StreamController<Event> _eventController = new StreamController.broadcast();
 
   Stream<Event> get eventStream => this._eventController.stream;
