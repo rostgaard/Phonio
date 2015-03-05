@@ -15,8 +15,8 @@ abstract class PJSUACommand {
   static const String DISABLE_AUTO_ANSWER = 'm';
   static const String ANSWER_CALL         = 'p';
 
-  static String dialString (String extension, {String server : ''})
-    => '${PJSUACommand._DIAL}sip:${extension}${server.isNotEmpty ? '@${server}' : ''}';
+  static String dialString (String extension)
+    => '${PJSUACommand._DIAL}sip:${extension}';
 }
 
 abstract class PJSUAEvent {
@@ -93,8 +93,7 @@ class PJSUAProcess extends SIPPhone {
       }
 
       return this._subscribeAndSend
-          (PJSUACommand.dialString
-              (extension, server: this.defaultAccount.server))
+          (PJSUACommand.dialString(extension))
               .then ((_) => null);
     }
 
@@ -110,7 +109,7 @@ class PJSUAProcess extends SIPPhone {
         List<String> arguments = [this.defaultAccount.username,
                              this.defaultAccount.password,
                              this.defaultAccount.server,
-                             this.defaultAccount.SIPPort.toString(),
+                             this.port.toString(),
                              Configuration.Loglevel.toString()];
 
 
