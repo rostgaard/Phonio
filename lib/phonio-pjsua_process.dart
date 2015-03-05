@@ -62,19 +62,22 @@ class PJSUAProcess extends SIPPhone {
 
     bool           get connected   => this._process != null;
 
-    PJSUAProcess (this.binaryPath);
+    PJSUAProcess (this.binaryPath, this.port);
 
     Future autoAnswer(bool enabled, {SIPAccount account : null}) {
       // Default to the first account
-      int accountID = (account != null ? account.ID : 1);
+      int accountID = (account != null ? this._accounts.indexOf(account)+1 : 1);
 
-      return this._subscribeAndSend((enabled ? PJSUACommand.ENABLE_AUTO_ANSWER
+      log.finest('${enabled ? 'Enabling' : 'Disabling' } autoanswer on account $account');
+
+      return this._subscribeAndSend((enabled ? PJSUACommand.ENABLE_AUTO_ANSWER+accountID.toString()
                                              : PJSUACommand.DISABLE_AUTO_ANSWER));
     }
 
     Future hold() => new Future.error(new UnimplementedError());
 
-    Future hangup() => new Future.error(new UnimplementedError());
+    //TODO: Check return value of hangup.
+    Future hangup() => hangupCurrentCall();
 
     Future hangupSpecific(Call call) => new Future.error(new UnimplementedError());
 
@@ -155,7 +158,7 @@ class PJSUAProcess extends SIPPhone {
     }
 
     void _processOutput (String line) {
-      this.log.fine('(pipe) $line');
+      this.log.finest('(pipe) $line');
 
       if (['{'].any((char) => line.startsWith(char))) {
          this._parseAndDispatch(line);
@@ -173,23 +176,20 @@ class PJSUAProcess extends SIPPhone {
 
       if (map.containsKey('event')) {
         if(map['event'] == PJSUAEvent.READY) {
-          this._ready = true;
-          while (!this._readyQueue.isEmpty) {
-            this._readyQueue.removeFirst().complete();
-          }
+          this._readyCompleter.complete();
 
         } else if(map['event'] == PJSUAEvent.OUTGOING_CALL) {
           //TODO: Extract callID or similar.
 
-          Event event = new CallOutgoing(map['call']['id'].toString(), map['call']['extension']);
+          Event outEvent = new CallOutgoing(map['call']['id'].toString(), map['call']['extension']);
 
-          this._eventController.add(event);
+          this._addEvent(outEvent);
 
         } else if(map['event'] == PJSUAEvent.INCOMING_CALL) {
           //TODO: Extract callID or similar.
-          Event event = new CallIncoming(map['call']['id'].toString(), map['call']['extension']);
+          Event inEvent = new CallIncoming(map['call']['id'].toString(), map['call']['extension']);
 
-          this._eventController.add(event);
+          this._addEvent(inEvent);
 
         } else {
           log.severe('Unknown message: "$line"');
