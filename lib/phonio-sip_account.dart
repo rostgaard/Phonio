@@ -1,26 +1,23 @@
 part of phonio;
 
 class SIPAccount {
-  int    ID         = null;
   String username   = null;
   String password   = null;
   String server     = null;
-  int    SIPPort    = null;
-  bool   autoAnswer = false;
 
-  final SIPPhone phone;
-
-  SIPAccount (this.phone) {
-    this.phone._accounts.add(this);
-  }
+  SIPAccount (this.username, this.password, this.server);
 
   Map get asMap => {
-    'id' : this.ID,
     'username' : this.username,
+    'password' : '${password.runes.first}*****${password.runes.last}',
     'server'   : this.server,
-    'autoanswer' : this.autoAnswer
   };
 
   Map toJson() => this.asMap;
+
+  @override
+  String toString() => this.username;
+
+  String get inContactFormat => '${this.username}@${this.server}';
 
 }

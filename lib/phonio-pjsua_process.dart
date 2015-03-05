@@ -40,9 +40,13 @@ class PJSUAProcess extends SIPPhone {
 
     Logger           log         = new Logger(PJSUAProcess.classname);
     final String      binaryPath;
+    final int port;
     IO.Process       _process    = null;
-    bool             _ready      = false;
-    Queue<Completer> _readyQueue = new Queue();
+    Completer       _readyCompleter = new Completer();
+
+    String get contact => '${this.defaultAccount.inContactFormat}:${this.port}';
+
+    bool get ready => this._readyCompleter.isCompleted;
 
     int _defaultAccountID = null;
     SIPAccount get defaultAccount {
@@ -143,12 +147,11 @@ class PJSUAProcess extends SIPPhone {
      * the process is ready before sending commands to it.
      */
     Future whenReady () {
-      if (this._ready) {
-        return new Future(null);
-      } else {
-        Completer ticket = new Completer();
-        this._readyQueue.add(ticket);
-        return ticket.future.timeout(new Duration(seconds : 20));
+      if (this.ready) {
+        return new Future.value(null);
+      }
+      else {
+        return this._readyCompleter.future;
       }
     }
 
