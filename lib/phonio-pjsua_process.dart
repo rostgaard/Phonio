@@ -122,8 +122,6 @@ class PJSUAProcess extends SIPPhone {
     Future<String> hangupAllCalls() => this._subscribeAndSend(PJSUACommand.HANGUP_ALL);
 
     Future connect () {
-      Completer completer = new Completer();
-
       if (!this.connected) {
         List<String> arguments = [this.defaultAccount.username,
                              this.defaultAccount.password,
@@ -132,7 +130,7 @@ class PJSUAProcess extends SIPPhone {
                              Configuration.Loglevel.toString()];
 
 
-        IO.Process.start(this.binaryPath , arguments).then((IO.Process process) {
+        return IO.Process.start(this.binaryPath , arguments).then((IO.Process process) {
           this._process = process;
 
           this._process.exitCode.then((int exitCode) {
@@ -145,19 +143,20 @@ class PJSUAProcess extends SIPPhone {
           });
 
 
-          process.stdout.transform(UTF8.decoder)
+          process.stdout.transform(ASCII.decoder)
             .transform(new LineSplitter())
             .listen(this._processOutput);
 
-          process.stderr.transform(UTF8.decoder).transform(new LineSplitter()).listen((String line) {
+          process.stderr.transform(ASCII.decoder).transform(new LineSplitter()).listen((String line) {
             this.log.severe('(pipe, stderr) $line');
           });
+          return this.whenReady();
 
-          completer.complete(null);
-        }).catchError((error, stackTrace) => completer.completeError(error,stackTrace));
+         });
       }
 
-      return completer.future;
+      return new Future.error(new StateError('Process already started.'));
+
     }
 
     /**
