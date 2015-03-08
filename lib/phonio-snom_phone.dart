@@ -100,6 +100,12 @@ class SNOMPhone extends SIPPhone {
     'accounts' : this.accounts
   };
 
+  Future initialize () => throw new UnimplementedError
+      ('WIP: Should push the account and callback information to the phone.');
+
+  Future teardown() => throw new UnimplementedError();
+
+  Future register({SIPAccount account : null}) => throw new UnimplementedError();
   /**
    * Serialization function
    */

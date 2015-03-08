@@ -27,6 +27,10 @@ abstract class SIPPhone {
   void addAccount(SIPAccount account) =>
     this._accounts.add(account);
 
+  Future initialize();
+  Future teardown();
+
+  Future register({SIPAccount account : null});
 
   SIPAccount get defaultAccount;
 

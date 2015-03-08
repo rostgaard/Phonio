@@ -75,6 +75,19 @@ class PJSUAProcess extends SIPPhone {
                                              : PJSUACommand.DISABLE_AUTO_ANSWER));
     }
 
+    Future initialize() => this.connect();
+
+    Future teardown() => this.quitProcess();
+
+    Future register({SIPAccount account : null}) {
+      if (account == null) {
+        account = this.defaultAccount;
+      }
+
+      log.warning('$this only supports registering the default account.');
+      return this.registerAccount();
+    }
+
     Future hold() => new Future.error(new UnimplementedError());
 
     //TODO: Check return value of hangup.
