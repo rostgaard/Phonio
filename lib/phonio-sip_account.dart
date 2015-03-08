@@ -5,7 +5,7 @@ class SIPAccount {
   String password   = null;
   String server     = null;
 
-  SIPAccount (this.username, this.password, this.server);
+  SIPAccount (this.username, this.password, this.server, {bool shouldRegister : false});
 
   Map get asMap => {
     'username' : this.username,
