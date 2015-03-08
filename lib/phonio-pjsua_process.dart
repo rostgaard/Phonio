@@ -14,6 +14,7 @@ abstract class PJSUACommand {
   static const String ENABLE_AUTO_ANSWER  = 'a';
   static const String DISABLE_AUTO_ANSWER = 'm';
   static const String ANSWER_CALL         = 'p';
+  static const String QUIT                = 'q';
 
   static String dialString (String extension)
     => '${PJSUACommand._DIAL}sip:${extension}';
@@ -229,6 +230,7 @@ class PJSUAProcess extends SIPPhone {
     }
 
     Future<int> quitProcess () {
+      this._subscribeAndSend(PJSUACommand.QUIT);
       log.finest('sending SIGTERM to ${this._process.pid}');
 
       this._process.kill((IO.ProcessSignal.SIGTERM));
