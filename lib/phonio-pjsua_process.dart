@@ -231,7 +231,7 @@ class PJSUAProcess extends SIPPhone {
 
     }
 
-    Future _subscribeAndSend (String command) {
+    Future<String> _subscribeAndSend (String command) {
       Completer<String> ticket = new Completer<String>();
       this.replyQueue.add(ticket);
 
