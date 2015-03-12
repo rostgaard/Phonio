@@ -287,6 +287,7 @@ class HTTPClientWrapper {
           completer.complete(buffer);
         });
       } catch (error, stacktrace) {
+        completer.completeError(error, stacktrace);
       }
     }).catchError((error, stackTrace) => completer.completeError(error,stackTrace));
 
