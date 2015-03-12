@@ -96,7 +96,7 @@ class SNOMPhone extends SIPPhone {
    * Returns a map represenation of the phone.
    */
   Map get asMap => {
-    'id' : '123',
+    'host' : this._host.toString(),
     'accounts' : this.accounts
   };
 
