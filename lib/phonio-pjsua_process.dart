@@ -256,11 +256,7 @@ class PJSUAProcess extends SIPPhone {
       }
 
       return this._subscribeAndSend(PJSUACommand.QUIT)
-        .then((String reply) {
-         print ("Exit got $reply");
-
-         return this._process.exitCode;
-        })
+        .then((String reply) => this._process.exitCode)
         .timeout(new Duration (seconds : 5), onTimeout: trySigTerm)
         .timeout(new Duration (seconds : 10), onTimeout: doSigKill);
 

@@ -31,14 +31,11 @@ class SNOMActionGateway {
         .addMiddleware(exceptionResponse())
         .addHandler(router.handler);
 
-    route.printRoutes(router);
-
-
+    //route.printRoutes(router);
 
     return shelf_io.serve(handler, hostname, port).then((server) {
       this.host = 'http://${server.address.host}:${server.port}';
       this.server = server;
-      print('Serving at ${this.host}');
     });
   }
 
