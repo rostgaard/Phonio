@@ -242,17 +242,28 @@ class PJSUAProcess extends SIPPhone {
     }
 
     Future<int> quitProcess () {
-      this._subscribeAndSend(PJSUACommand.QUIT);
-      log.finest('sending SIGTERM to ${this._process.pid}');
+      Future<int> trySigTerm () {
+        log.info('Process ${this._process.pid} not responding '
+                 'to QUIT command, Sending SIGTERM');
+        this._process.kill((IO.ProcessSignal.SIGTERM));
+        return this._process.exitCode;
+      }
 
-      this._process.kill((IO.ProcessSignal.SIGTERM));
-
-      new Future.delayed(new Duration (seconds: 1), (){
-        log.finest('sending SIGKILL to ${this._process.pid}');
+      Future doSigKill () {
+        log.warning('Sending SIGKILL to ${this._process.pid} as a last resort');
         this._process.kill((IO.ProcessSignal.SIGKILL));
-      });
+        return this._process.exitCode;
+      }
 
-      return this._process.exitCode;
+      return this._subscribeAndSend(PJSUACommand.QUIT)
+        .then((String reply) {
+         print ("Exit got $reply");
+
+         return this._process.exitCode;
+        })
+        .timeout(new Duration (seconds : 5), onTimeout: trySigTerm)
+        .timeout(new Duration (seconds : 10), onTimeout: doSigKill);
+
     }
 
     Future waitFor (String line, {int timeoutSeconds : 10}) =>
