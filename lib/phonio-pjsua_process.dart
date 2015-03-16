@@ -116,6 +116,12 @@ class PJSUAProcess extends SIPPhone {
               .then ((_) => null);
     }
 
+    Future unregister({SIPAccount account : null}) {
+      log.warning('Unregistering default account, as account handling '
+                  'is not implemented');
+      return this.unregisterAccount();
+    }
+
     Future<String> unregisterAccount() => this._subscribeAndSend(PJSUACommand.UNREGISTER);
 
     Future<String> hangupCurrentCall() => this._subscribeAndSend(PJSUACommand.HANGUP_CURRENT);

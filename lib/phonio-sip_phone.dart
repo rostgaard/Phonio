@@ -31,6 +31,7 @@ abstract class SIPPhone {
   Future teardown();
 
   Future register({SIPAccount account : null});
+  Future unregister({SIPAccount account : null});
 
   SIPAccount get defaultAccount;
 

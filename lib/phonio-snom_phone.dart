@@ -104,8 +104,9 @@ class SNOMPhone extends SIPPhone {
       ('WIP: Should push the account and callback information to the phone.');
 
   Future teardown() => throw new UnimplementedError();
-
   Future register({SIPAccount account : null}) => throw new UnimplementedError();
+  Future unregister({SIPAccount account : null}) => throw new UnimplementedError();
+
   /**
    * Serialization function
    */
