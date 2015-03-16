@@ -149,12 +149,12 @@ class PJSUAProcess extends SIPPhone {
             }
           });
 
-
-          process.stdout.transform(ASCII.decoder)
+          this._process.stdout.transform(ASCII.decoder)
             .transform(new LineSplitter())
             .listen(this._processOutput);
 
-          process.stderr.transform(ASCII.decoder).transform(new LineSplitter()).listen((String line) {
+          this._process.stderr.transform(ASCII.decoder)
+            .transform(new LineSplitter()).listen((String line) {
             this.log.severe('(pipe, stderr) $line');
           });
           return this.whenReady();
@@ -249,6 +249,11 @@ class PJSUAProcess extends SIPPhone {
     }
 
     Future<int> quitProcess () {
+      if (!this._eventController.isClosed) {
+        this.log.finest('Closing eventController');
+        this._eventController.close();
+      }
+
       if (this._process == null) {
         log.info('Process already terminated, returning last known exit code.');
         return new Future.value(this._exitCode);
@@ -259,7 +264,9 @@ class PJSUAProcess extends SIPPhone {
         return this._process.exitCode
           .then ((int exitCode) => this._exitCode = exitCode)
           // Kill the reference to the process when it is no longer running.
-          .whenComplete(() => this._process = null);
+          .whenComplete(() {
+            this._process = null;
+          });
       }
 
       Future<int> trySigTerm () {
