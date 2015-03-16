@@ -44,6 +44,7 @@ class PJSUAProcess extends SIPPhone {
     final int port;
     IO.Process       _process    = null;
     Completer       _readyCompleter = new Completer();
+    int             _exitCode = null;
 
     String get contact => '${this.defaultAccount.inContactFormat}:${this.port}';
 
@@ -241,28 +242,41 @@ class PJSUAProcess extends SIPPhone {
       Completer<String> ticket = new Completer<String>();
       this.replyQueue.add(ticket);
 
-      this.log.finest('Sending command "$command"');
+      this.log.finest('(pid ${this._process.pid}) Sending command "$command"');
       this._process.stdin.writeln(command);
 
       return ticket.future;
     }
 
     Future<int> quitProcess () {
+      if (this._process == null) {
+        log.info('Process already terminated, returning last known exit code.');
+        return new Future.value(this._exitCode);
+      }
+
+      Future<int> waitForTermination () {
+
+        return this._process.exitCode
+          .then ((int exitCode) => this._exitCode = exitCode)
+          // Kill the reference to the process when it is no longer running.
+          .whenComplete(() => this._process = null);
+      }
+
       Future<int> trySigTerm () {
         log.info('Process ${this._process.pid} not responding '
                  'to QUIT command, Sending SIGTERM');
         this._process.kill((IO.ProcessSignal.SIGTERM));
-        return this._process.exitCode;
+        return waitForTermination();
       }
 
       Future doSigKill () {
         log.warning('Sending SIGKILL to ${this._process.pid} as a last resort');
         this._process.kill((IO.ProcessSignal.SIGKILL));
-        return this._process.exitCode;
+        return waitForTermination();
       }
 
       return this._subscribeAndSend(PJSUACommand.QUIT)
-        .then((String reply) => this._process.exitCode)
+        .then((String reply) => waitForTermination())
         .timeout(new Duration (seconds : 5), onTimeout: trySigTerm)
         .timeout(new Duration (seconds : 10), onTimeout: doSigKill);
 
