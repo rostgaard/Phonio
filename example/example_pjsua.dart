@@ -13,17 +13,29 @@
 
 import 'package:phonio/phonio.dart' as Phonio;
 
+/**
+ * Example on how to use the PJSUA backend.
+ */
 void main() {
 
+  // Define a SIP account.
   Phonio.SIPAccount account =
     new Phonio.SIPAccount('someuser', 'secretpassword', 'sip.example.com');
 
+  /* Create a new process. Nothing will be started until the [initialize]
+     method is called. it needs the path to compatible PJSUA backed, which is
+     currently located in support tools of
+     https://github.com/Bitstackers/OpenReception-Integration-Tests */
   Phonio.PJSUAProcess pjPhone =
       new Phonio.PJSUAProcess ('bin/simple_agent', 5060);
 
+  // Add the account to the phone.
   pjPhone.addAccount(account);
 
+  /* The initialize returns a future that completes when the backend
+     system process has returned ready */
   pjPhone.initialize()
+    // Every communication method is a future that can be chained.
     .then((_) => pjPhone.register())
     .then((_) {
       pjPhone.originate ('1109')
