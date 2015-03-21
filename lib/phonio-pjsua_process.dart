@@ -46,6 +46,8 @@ class PJSUAProcess extends SIPPhone {
     Completer       _readyCompleter = new Completer();
     int             _exitCode = null;
 
+    int get pid => this._process != null ? this._process.pid : -1;
+
     String get contact => '${this.defaultAccount.inContactFormat}:${this.port}';
 
     bool get ready => this._readyCompleter.isCompleted;
@@ -180,7 +182,7 @@ class PJSUAProcess extends SIPPhone {
     }
 
     void _processOutput (String line) {
-      this.log.finest('(pid ${this._process.pid}) $line');
+      this.log.finest('(pid ${this.pid}) $line');
 
       if (['{'].any((char) => line.startsWith(char))) {
          this._parseAndDispatch(line);
@@ -245,10 +247,14 @@ class PJSUAProcess extends SIPPhone {
     }
 
     Future<String> _subscribeAndSend (String command) {
+      if (this._process == null) {
+        return new Future.error(new StateError('Process not started!'));
+      }
+
       Completer<String> ticket = new Completer<String>();
       this.replyQueue.add(ticket);
 
-      this.log.finest('(pid ${this._process.pid}) Sending command "$command"');
+      this.log.finest('(pid ${this.pid}) Sending command "$command"');
       this._process.stdin.writeln(command);
 
       return ticket.future;
@@ -276,7 +282,7 @@ class PJSUAProcess extends SIPPhone {
       }
 
       Future<int> trySigTerm () {
-        log.info('Process ${this._process.pid} not responding '
+        log.info('Process ${this.pid} not responding '
                  'to QUIT command, Sending SIGTERM');
         this._process.kill((IO.ProcessSignal.SIGTERM));
         return waitForTermination();
