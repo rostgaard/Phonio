@@ -1,4 +1,4 @@
-import '../lib/phonio.dart' as Phonio;
+import 'package:phonio/phonio.dart' as Phonio;
 
 void main() {
 
