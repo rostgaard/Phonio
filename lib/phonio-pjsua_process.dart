@@ -222,7 +222,13 @@ class PJSUAProcess extends SIPPhone {
         }
 
         else if(map['event'] == "CALL_STATE") {
-            //Ignore these for now.
+           // Disconnect.
+           if (map['call']['state'] == 6) {
+             Event disconnectEvent =
+                 new CallDisconnected(map['call']['id'].toString());
+
+             this._addEvent(disconnectEvent);
+           }
         }
 
         else {
