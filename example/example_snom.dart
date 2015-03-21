@@ -13,28 +13,43 @@
 
 import 'package:phonio/phonio.dart' as Phonio;
 
+/**
+ * Example on how to use the SNOM backend.
+ */
 void main() {
 
+  // Define a SIP account.
   Phonio.SIPAccount account =
     new Phonio.SIPAccount('someuser', 'secretpassword', 'sip.example.com');
 
+  /* Create a new process. Nothing will be started until the [initialize]
+     method is called. */
   Phonio.SNOMPhone snomPhone = new Phonio.SNOMPhone
       (Uri.parse('http://snomhost.example.com'));
 
+  /* Helper map that is needed to enable the [SNOMActionGateway] to
+     dispatch events into the approprate event stream */
   Map phoneMap = { account.username : snomPhone};
 
+  // This gateway is needed to receive events from SNOM phones.
   Phonio.SNOMActionGateway snomgw = new Phonio.SNOMActionGateway(phoneMap);
 
+  // Start the gateway.
   snomgw.start(hostname: 'myExternalHostname')
+    /* The gateway provides a heler function that, when coupled with the
+       [setActionURL] method of a [SNOMPhone] registers the callback urls that
+       will be used whenever the SNOM phone triggers an event (such as
+       incoming an call) */
     .then((_) => snomPhone.setActionURL(snomgw.actionUrls));
 
+  // Add the account to the phone.
   snomPhone.accounts.add(account);
 
-  snomPhone.autoAnswer(true);
-
-  snomPhone.originate ('1109')
-  .then((Phonio.Call call) {
-    print ('Originated $call');
-  });
-
+  // Every communication method is a future that can be chained.
+  snomPhone.autoAnswer(true)
+    .then ((_) => snomPhone.register())
+    .then ((_) => snomPhone.originate ('1109')
+      .then((Phonio.Call call) {
+        print ('Originated $call');
+      }));
 }
