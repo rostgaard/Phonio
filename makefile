@@ -3,10 +3,10 @@ all: dependencies
 dependencies:
 	pub get
 
-analyze:
-	@dartanalyzer --no-hints --fatal-warnings lib/phonio.dart
+analyze: dependencies
+	@dartanalyzer --no-hints --fatal-warnings lib/phonio.dart example/*.dart
 
-analyze-hints:
-	@echo "! (dartanalyzer lib/phonio.dart | grep '^\[')" | bash
+analyze-hints: dependencies
+	@echo "! (dartanalyzer lib/phonio.dart example/*.dart | grep '^\[')" | bash
 
 analyze-all: analyze analyze-hints
