@@ -75,7 +75,7 @@ class SNOMPhone extends SIPPhone {
   static const String classname = '${libraryName}.SNOMPhone';
 
   final Uri    _host;
-  final Logger log                = new Logger(SNOMPhone.classname);
+  static final Logger log                = new Logger(SNOMPhone.classname);
   final HTTPClientWrapper _client = new HTTPClientWrapper();
 
   /// Default sip port. Change if needed.

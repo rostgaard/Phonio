@@ -39,7 +39,7 @@ class PJSUAProcess extends SIPPhone {
 
   static const String classname = '${libraryName}.PJSUAProcess';
 
-    Logger           log         = new Logger(PJSUAProcess.classname);
+  static final Logger log         = new Logger(PJSUAProcess.classname);
     final String      binaryPath;
     final int port;
     IO.Process       _process    = null;
@@ -144,10 +144,10 @@ class PJSUAProcess extends SIPPhone {
 
           this._process.exitCode.then((int exitCode) {
             if (exitCode != 0) {
-              this.log.severe('Process exited with status $exitCode.');
+              log.severe('Process exited with status $exitCode.');
             }
             else {
-              this.log.finest('Process exited with status $exitCode.');
+              log.finest('Process exited with status $exitCode.');
             }
           });
 
@@ -157,7 +157,7 @@ class PJSUAProcess extends SIPPhone {
 
           this._process.stderr.transform(ASCII.decoder)
             .transform(new LineSplitter()).listen((String line) {
-            this.log.severe('(pipe, stderr) $line');
+            log.severe('(pipe, stderr) $line');
           });
           return this.whenReady();
 
@@ -182,7 +182,7 @@ class PJSUAProcess extends SIPPhone {
     }
 
     void _processOutput (String line) {
-      this.log.finest('(pid ${this.pid}) $line');
+      log.finest('(pid ${this.pid}) $line');
 
       if (['{'].any((char) => line.startsWith(char))) {
          this._parseAndDispatch(line);
@@ -195,7 +195,7 @@ class PJSUAProcess extends SIPPhone {
       try {
         map = JSON.decode(line);
       } catch (error) {
-        this.log.severe('Failed to parse line: "$line"');
+        log.severe('Failed to parse line: "$line"');
       }
 
       if (map.containsKey('event')) {
@@ -241,7 +241,7 @@ class PJSUAProcess extends SIPPhone {
       } else if (map.containsKey('reply')) {
         this.replyQueue.removeFirst().complete(map['reply']);
       } else {
-        this.log.severe('Unrecognized line: "$line"');
+        log.severe('Unrecognized line: "$line"');
       }
 
     }
@@ -254,7 +254,7 @@ class PJSUAProcess extends SIPPhone {
       Completer<String> ticket = new Completer<String>();
       this.replyQueue.add(ticket);
 
-      this.log.finest('(pid ${this.pid}) Sending command "$command"');
+      log.finest('(pid ${this.pid}) Sending command "$command"');
       this._process.stdin.writeln(command);
 
       return ticket.future;
@@ -262,7 +262,7 @@ class PJSUAProcess extends SIPPhone {
 
     Future<int> quitProcess () {
       if (!this._eventController.isClosed) {
-        this.log.finest('Closing eventController');
+        log.finest('Closing eventController');
         this._eventController.close();
       }
 
@@ -282,10 +282,6 @@ class PJSUAProcess extends SIPPhone {
       }
 
       Future<int> trySigTerm () {
-        if (this._process == null) {
-          log.info('Process terminated, returning last known exit code.');
-          return new Future.value(this._exitCode);
-        }
         log.info('Process ${this.pid} not responding '
                  'to QUIT command, Sending SIGTERM');
         this._process.kill((IO.ProcessSignal.SIGTERM));
@@ -293,10 +289,6 @@ class PJSUAProcess extends SIPPhone {
       }
 
       Future doSigKill () {
-        if (this._process == null) {
-          log.info('Process terminated, returning last known exit code.');
-          return new Future.value(this._exitCode);
-        }
         log.warning('Sending SIGKILL to ${this._process.pid} as a last resort');
         this._process.kill((IO.ProcessSignal.SIGKILL));
         return waitForTermination();

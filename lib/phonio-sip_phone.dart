@@ -2,7 +2,7 @@ part of phonio;
 
 abstract class SIPPhone {
 
-  static final Logger log = new Logger ('$libraryName.SIPPhone');
+  static Logger log = new Logger ('$libraryName.SIPPhone');
 
   String _IPaddress = null;
 
