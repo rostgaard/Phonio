@@ -2,6 +2,8 @@ part of phonio;
 
 abstract class SIPPhone {
 
+  static final Logger log = new Logger ('$libraryName.SIPPhone');
+
   String _IPaddress = null;
 
   int get ID => this.hashCode;
@@ -12,7 +14,15 @@ abstract class SIPPhone {
 
   Stream<Event> get eventStream => this._eventController.stream;
 
-  void _addEvent (Event event) => this._eventController.add(event);
+  void _addEvent (Event event) {
+    if (! this._eventController.isClosed) {
+      this._eventController.add(event);
+    }
+    else {
+      log.info
+        ('Discarding event ${event.eventName} - eventcontroller is closed.');
+    }
+  }
 
   @override
   bool operator == (SIPPhone other) => this.ID == other.ID;
