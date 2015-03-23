@@ -282,6 +282,10 @@ class PJSUAProcess extends SIPPhone {
       }
 
       Future<int> trySigTerm () {
+        if (this._process == null) {
+          log.info('Process terminated, returning last known exit code.');
+          return new Future.value(this._exitCode);
+        }
         log.info('Process ${this.pid} not responding '
                  'to QUIT command, Sending SIGTERM');
         this._process.kill((IO.ProcessSignal.SIGTERM));
@@ -289,6 +293,10 @@ class PJSUAProcess extends SIPPhone {
       }
 
       Future doSigKill () {
+        if (this._process == null) {
+          log.info('Process terminated, returning last known exit code.');
+          return new Future.value(this._exitCode);
+        }
         log.warning('Sending SIGKILL to ${this._process.pid} as a last resort');
         this._process.kill((IO.ProcessSignal.SIGKILL));
         return waitForTermination();
