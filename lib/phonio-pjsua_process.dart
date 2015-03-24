@@ -131,6 +131,10 @@ class PJSUAProcess extends SIPPhone {
     Future<String> hangupAllCalls() => this._subscribeAndSend(PJSUACommand.HANGUP_ALL);
 
     Future connect () {
+      if (this._readyCompleter.isCompleted) {
+        this._readyCompleter = new Completer();
+      }
+
       if (!this.connected) {
         List<String> arguments = [this.defaultAccount.username,
                              this.defaultAccount.password,
@@ -138,6 +142,10 @@ class PJSUAProcess extends SIPPhone {
                              this.port.toString(),
                              Configuration.Loglevel.toString()];
 
+        this.replyQueue.map((Completer<String> completer) {
+          completer.completeError(new StateError('Process is restarting'));
+        });
+        this.replyQueue.clear();
 
         return IO.Process.start(this.binaryPath , arguments).then((IO.Process process) {
           this._process = process;
