@@ -191,7 +191,9 @@ class PJSUAProcess extends SIPPhone {
     }
 
     void _processOutput (String line) {
-      log.finest('(pid ${this.pid}) $line');
+      if (this.ready) {
+        log.finest('(pid ${this.pid}) $line');
+      }
 
       if (['{'].any((char) => line.startsWith(char))) {
          this._parseAndDispatch(line);
