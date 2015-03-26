@@ -136,6 +136,7 @@ class PJSUAProcess extends SIPPhone {
       }
 
       if (!this.connected) {
+        this._eventController = new StreamController.broadcast();
         List<String> arguments = [this.defaultAccount.username,
                              this.defaultAccount.password,
                              this.defaultAccount.server,
