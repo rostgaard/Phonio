@@ -144,7 +144,7 @@ class PJSUAProcess extends SIPPhone {
                              Configuration.Loglevel.toString()];
 
         this.replyQueue.map((Completer<String> completer) {
-          completer.completeError(new StateError('Process is restarting'));
+          completer.completeError(new StateError('Process is starting'));
         });
         this.replyQueue.clear();
 
@@ -275,7 +275,7 @@ class PJSUAProcess extends SIPPhone {
       if (!this._eventController.isClosed) {
         log.finest('Closing eventController');
         this._eventController.close();
-      }
+       }
 
       if (this._process == null) {
         log.info('Process already terminated, returning last known exit code.');
