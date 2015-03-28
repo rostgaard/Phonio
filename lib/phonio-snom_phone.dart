@@ -1,6 +1,9 @@
 part of phonio;
 
-
+/**
+ * Physical keys found on SNOM phones. Typically used in the context of
+ * constructing [SNOMResource].
+ */
 abstract class SNOMKey {
   static const String CANCEL = 'CANCEL';
   static const String ENTER = 'ENTER';
@@ -40,6 +43,10 @@ abstract class SNOMKey {
   static String EK(int index) => 'Ek${index}';
 }
 
+/**
+ * A resource on a SNOM embedded webserver. Used for constructing Uri's that
+ * send commands to the phone and trieve status information.
+ */
 abstract class SNOMResource {
   static String _commandResource = '/command.htm';
 
