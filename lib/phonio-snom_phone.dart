@@ -85,6 +85,8 @@ class SNOMPhone extends SIPPhone {
   static final Logger log                = new Logger(SNOMPhone.classname);
   final HTTPClientWrapper _client = new HTTPClientWrapper();
 
+  int get ID => this.contact.hashCode;
+
   /// Default sip port. Change if needed.
   int port = 5060;
 

@@ -1,13 +1,24 @@
 part of phonio;
 
+/**
+ * Interface specifying the minimum functionality that a concrete phone should
+ * supply.
+ * Basically, this covers account handling, call management and event
+ * notification when, for instance, an incoming phone call arrives.
+ */
 abstract class SIPPhone {
 
+  /// Internal logger.
   static Logger log = new Logger ('$libraryName.SIPPhone');
 
+  /// IP address of the phone. Used in contact string.
   String _IPaddress = null;
 
-  int get ID => this.hashCode;
+  /// Identity of the phone, should be unique for _all_ generalization
+  /// instances.
+  int get ID;
 
+  /// The contact Uri of the phone.
   String get contact;
 
   StreamController<Event> _eventController = new StreamController.broadcast();

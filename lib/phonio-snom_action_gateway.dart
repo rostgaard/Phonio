@@ -9,6 +9,11 @@ class SNOMActionGateway {
 
   IO.HttpServer server;
 
+  Future get addr => IO.NetworkInterface.list()
+    .then((List<IO.NetworkInterface> nics){
+      nics.first.addresses.first;
+    });
+
   /**
    * TODO: Figure out a way to extract the effective external IP.
    */
