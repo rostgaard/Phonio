@@ -49,6 +49,8 @@ class PJSUAProcess extends SIPPhone {
     int get pid => this._process != null ? this._process.pid : -1;
     int get ID => this.contact.hashCode;
 
+    @override
+    String toString() => '${this.runtimeType} (pid ${this.pid})';
 
     String get contact => '${this.defaultAccount.inContactFormat}:${this.port}';
 

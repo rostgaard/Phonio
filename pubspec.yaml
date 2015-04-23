@@ -1,5 +1,5 @@
 name: phonio
-version: 0.0.11+experimental
+version: 0.0.12+experimental
 author: Kim Rostgaard Christensen (BitStackers)
 description: A basic framework for interfacing with SIP phones.
 dependencies:
