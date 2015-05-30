@@ -75,7 +75,7 @@ abstract class SIPPhone {
   Future transfer(Call destination);
 
   Map toJson() =>  {
-    'type' : this.runtimeType,
+    'type' : this.runtimeType.toString(),
     'contact' : contact,
     'id' : ID,
     'active_calls' : activeCalls,
