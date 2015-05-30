@@ -73,6 +73,15 @@ abstract class SIPPhone {
   Future release(Call call);
 
   Future transfer(Call destination);
+
+  Map toJson() =>  {
+    'type' : this.runtimeType,
+    'contact' : contact,
+    'id' : ID,
+    'active_calls' : activeCalls,
+    'accounts' : _accounts,
+    'default_account' : defaultAccount
+  };
 }
 
 class PhoneList extends IterableBase<SIPPhone> {

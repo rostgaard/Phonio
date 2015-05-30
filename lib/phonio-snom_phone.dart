@@ -92,6 +92,21 @@ class SNOMPhone extends SIPPhone {
 
   List<SIPAccount> accounts   = [];
 
+  /**
+   * Returns a map represenation of the phone.
+   */
+  @override
+  Map toJson() {
+    Map root = super.toJson();
+    Map extension = {
+      'host' : _host.toString(),
+    };
+
+    root['snom_phone'] = extension;
+
+    return root;
+  }
+
   String get contact => '${this.defaultAccount.inContactFormat}:${this.port}';
 
   /// TODO: Implement.
@@ -104,10 +119,6 @@ class SNOMPhone extends SIPPhone {
   /**
    * Returns a map represenation of the phone.
    */
-  Map get asMap => {
-    'host' : this._host.toString(),
-    'accounts' : this.accounts
-  };
 
   Future initialize () => throw new UnimplementedError
       ('WIP: Should push the account and callback information to the phone.');
@@ -115,12 +126,6 @@ class SNOMPhone extends SIPPhone {
   Future teardown() => throw new UnimplementedError();
   Future register({SIPAccount account : null}) => throw new UnimplementedError();
   Future unregister({SIPAccount account : null}) => throw new UnimplementedError();
-
-  /**
-   * Serialization function
-   */
-  Map toJson() => this.asMap;
-
   bool get connected => this._host != null;
 
   SNOMPhone(this._host);

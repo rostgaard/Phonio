@@ -52,6 +52,21 @@ class PJSUAProcess extends SIPPhone {
     @override
     String toString() => '${this.runtimeType} (pid ${this.pid})';
 
+    @override
+    Map toJson() {
+      Map root = super.toJson();
+      Map extension = {
+        'binary_path' : binaryPath,
+        'pid' : pid,
+        'ready' : ready,
+        'connected' : connected
+      };
+
+      root['process'] = extension;
+
+      return root;
+    }
+
     String get contact => '${this.defaultAccount.inContactFormat}:${this.port}';
 
     bool get ready => this._readyCompleter.isCompleted;
