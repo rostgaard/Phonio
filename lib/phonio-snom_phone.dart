@@ -87,6 +87,8 @@ class SNOMPhone extends SIPPhone {
 
   int get ID => this.contact.hashCode;
 
+  bool get ready => true;
+
   /// Default sip port. Change if needed.
   int port = 5060;
 
@@ -204,6 +206,7 @@ class SNOMPhone extends SIPPhone {
     return this._enqueue(request);
   }
 
+  Future finalize() => throw new UnimplementedError('Implement me!');
 
   Future<Call> originate (String extension, {SIPAccount account : null}) {
       Completer<Call> completer = new Completer();

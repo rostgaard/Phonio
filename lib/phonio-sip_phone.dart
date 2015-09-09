@@ -21,6 +21,8 @@ abstract class SIPPhone {
   /// The contact Uri of the phone.
   String get contact;
 
+  bool get ready;
+
   StreamController<Event> _eventController = new StreamController.broadcast();
 
   Stream<Event> get eventStream => this._eventController.stream;
@@ -50,6 +52,7 @@ abstract class SIPPhone {
 
   Future initialize();
   Future teardown();
+  Future finalize();
 
   Future register({SIPAccount account : null});
   Future unregister({SIPAccount account : null});

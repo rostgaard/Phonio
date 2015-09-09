@@ -97,9 +97,25 @@ class PJSUAProcess extends SIPPhone {
                                              : PJSUACommand.DISABLE_AUTO_ANSWER));
     }
 
-    Future initialize() => this.connect();
+    Future initialize() =>
+        !ready
+        ? connect()
+        : new Future.value
+        (_eventController = new StreamController.broadcast());
 
-    Future teardown() => this.quitProcess();
+    Future teardown() => this.hangupAll()
+        .then((_) => _eventController.close());
+
+    Future finalize() =>
+        !_eventController.isClosed
+        ? _eventController.close()
+          .then((_) =>
+              pid != -1
+              ? quitProcess()
+              : null)
+        : pid != -1
+          ? quitProcess()
+          : null;
 
     Future register({SIPAccount account : null}) {
       if (account == null) {
@@ -151,7 +167,7 @@ class PJSUAProcess extends SIPPhone {
 
     Future connect () {
       if (this._readyCompleter.isCompleted) {
-        this._readyCompleter = new Completer();
+        return new Future.value(null);
       }
 
       if (!this.connected) {
