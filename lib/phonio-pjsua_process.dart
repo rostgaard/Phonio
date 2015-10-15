@@ -144,6 +144,9 @@ class PJSUAProcess extends SIPPhone {
 
     Future<String> registerAccount() => this._subscribeAndSend(PJSUACommand.REGISTER);
 
+    /**
+     * TODO: Return call. Null is an evil and wrong value to return.
+     */
     Future<Call> originate (String extension, {SIPAccount account : null}) {
       if (account == null) {
         account = this.defaultAccount;

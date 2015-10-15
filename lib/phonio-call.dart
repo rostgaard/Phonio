@@ -7,6 +7,9 @@ abstract class CallJSONKey {
 
 }
 
+/**
+ * Class representing a call within the phonio framework.
+ */
 class Call {
 
   final String ID;
