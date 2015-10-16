@@ -94,6 +94,8 @@ class SNOMPhone extends SIPPhone {
 
   List<SIPAccount> accounts   = [];
 
+  List<Call> activeCalls = [];
+
   /**
    * Returns a map represenation of the phone.
    */

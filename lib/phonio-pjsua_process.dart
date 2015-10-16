@@ -9,11 +9,13 @@ abstract class PJSUACommand {
   static const String REGISTER            = 'r';
   static const String UNREGISTER          = 'u';
   static const String HANGUP_CURRENT      = 'H';
+  static const String HANGUP_SPECIFIC     = 'K';
   static const String HANGUP_ALL          = 'h';
   static const String _DIAL               = 'd';
   static const String ENABLE_AUTO_ANSWER  = 'a';
   static const String DISABLE_AUTO_ANSWER = 'm';
   static const String ANSWER_CALL         = 'p';
+  static const String PICKUP_CALL         = 'P';
   static const String QUIT                = 'q';
 
   static String dialString (String extension)
@@ -48,6 +50,10 @@ class PJSUAProcess extends SIPPhone {
 
     int get pid => this._process != null ? this._process.pid : -1;
     int get ID => this.contact.hashCode;
+
+
+    Map<int,Call> _calls = {};
+    Iterable<Call> get activeCalls => _calls.values;
 
     @override
     String toString() => '${this.runtimeType} (pid ${this.pid})';
@@ -133,7 +139,11 @@ class PJSUAProcess extends SIPPhone {
 
     Future answer() => this._subscribeAndSend(PJSUACommand.ANSWER_CALL);
 
-    Future hangupSpecific(Call call) => new Future.error(new UnimplementedError());
+    Future answerSpecific(Call call) =>
+        this._subscribeAndSend('${PJSUACommand.PICKUP_CALL}${call.ID}');
+
+    Future hangupSpecific(Call call) =>
+        this._subscribeAndSend('${PJSUACommand.HANGUP_SPECIFIC}${call.ID}');
 
     //TODO: Check return value of hangupAll.
     Future hangupAll() => this.hangupAllCalls();
@@ -267,8 +277,12 @@ class PJSUAProcess extends SIPPhone {
         }
 
         else if(map['event'] == PJSUAEvent.INCOMING_CALL) {
-          //TODO: Extract callID or similar.
-          Event inEvent = new CallIncoming(map['call']['id'].toString(), map['call']['extension']);
+          final int callId = map['call']['id'];
+          final String callee = map['call']['extension'];
+
+          Call call = new Call(callId.toString(), callee, true, defaultAccount.username);
+          _calls[callId] = call;
+          Event inEvent = new CallIncoming(call.ID, call.callee);
 
           this._addEvent(inEvent);
         }
@@ -279,9 +293,11 @@ class PJSUAProcess extends SIPPhone {
         else if(map['event'] == "CALL_STATE") {
            // Disconnect.
            if (map['call']['state'] == 6) {
+             final int callId = map['call']['id'];
              Event disconnectEvent =
-                 new CallDisconnected(map['call']['id'].toString());
+                 new CallDisconnected(callId.toString());
 
+             _calls.remove(callId);
              this._addEvent(disconnectEvent);
            }
         }

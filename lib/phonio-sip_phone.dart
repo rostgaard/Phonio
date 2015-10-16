@@ -43,7 +43,7 @@ abstract class SIPPhone {
   @override
   int get hashCode => this._IPaddress.hashCode;
 
-  List<Call> activeCalls;
+  Iterable<Call> get activeCalls;
 
   List<SIPAccount> _accounts = [];
 
