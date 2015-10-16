@@ -14,11 +14,12 @@ class Call {
 
   final String ID;
   final String callee;
+  final String callerID;
   final bool   inbound;
 
   String state = CallState.UNKNOWN;
 
-  Call (this.ID, this.callee, this.inbound);
+  Call (this.ID, this.callee, this.inbound, this.callerID);
 
   Map get asMap =>
       {

@@ -218,7 +218,7 @@ class SNOMPhone extends SIPPhone {
 
     this.eventStream.firstWhere((Event event) => event is CallOutgoing)
        .then((CallOutgoing e) {
-          Call call = new Call(e.callID, e.callee, false);
+          Call call = new Call(e.callID, e.callee, false, defaultAccount.username);
           completer.complete(call);
        })
        .catchError((error, stackTrace) => completer.completeError(error, stackTrace));

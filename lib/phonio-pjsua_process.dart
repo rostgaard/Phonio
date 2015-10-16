@@ -254,9 +254,13 @@ class PJSUAProcess extends SIPPhone {
         }
 
         else if(map['event'] == PJSUAEvent.OUTGOING_CALL) {
-          //TODO: Extract callID or similar.
+          final int callId = map['call']['id'];
+          final String callee = map['call']['extension'];
 
-          Event outEvent = new CallOutgoing(map['call']['id'].toString(), map['call']['extension']);
+          Call call = new Call(callId.toString(), callee, false, defaultAccount.username);
+          _calls[callId] = call;
+
+          Event outEvent = new CallOutgoing(call.ID, call.callee);
 
           this._addEvent(outEvent);
 
