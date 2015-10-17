@@ -67,6 +67,8 @@ abstract class SIPPhone {
 
   Future answer();
 
+  Future answerSpecific(Call call);
+
   Future hangupAll();
 
   Future hangupSpecific(Call call);

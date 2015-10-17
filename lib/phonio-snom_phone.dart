@@ -75,6 +75,8 @@ class SNOMHTTPRequest {
  * This agent have a builtin throttle mechanism that prevents commands from
  * being sent too fast to the phone. This prevents the remote webserver from
  * choking on them and sending back incomplete headers.
+ *
+ * TODO: Enable call listing and handling of specific calls.
  */
 
 class SNOMPhone extends SIPPhone {
@@ -94,7 +96,10 @@ class SNOMPhone extends SIPPhone {
 
   List<SIPAccount> accounts   = [];
 
-  List<Call> activeCalls = [];
+  List<Call> get activeCalls => throw new UnimplementedError('Implement me!');
+
+  Future answerSpecific(Call call) =>
+      throw new UnimplementedError('Implement me!');
 
   /**
    * Returns a map represenation of the phone.
