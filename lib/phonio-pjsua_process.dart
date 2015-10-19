@@ -27,6 +27,7 @@ abstract class PJSUAEvent {
   static const String DIALING        = '!RINGING';
   static const String INCOMING_CALL  = 'CALL_INCOMING';
   static const String OUTGOING_CALL  = 'CALL_OUTGOING';
+  static const String CALL_MEDIA     = 'CALL_MEDIA';
 }
 
 abstract class PJSUAResponse {
@@ -309,7 +310,10 @@ class PJSUAProcess extends SIPPhone {
              this._addEvent(disconnectEvent);
            }
         }
-
+        else if(map['event'] == PJSUAEvent.CALL_MEDIA) {
+          //final int callId = map['call']['id'];
+          //TODO: Update media state of call.
+        }
         else {
           log.severe('Unknown message: "$line"');
         }
