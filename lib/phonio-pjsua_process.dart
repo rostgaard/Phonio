@@ -123,15 +123,23 @@ class PJSUAProcess extends SIPPhone {
           ? quitProcess()
           : null;
 
+    /**
+     * Register a a SIP account with the process.
+     */
     Future register({SIPAccount account : null}) {
       if (account == null) {
         account = this.defaultAccount;
       }
+      else {
+        log.severe('$this only supports registering the default account.');
+      }
 
-      log.warning('$this only supports registering the default account.');
       return this.registerAccount();
     }
 
+    /**
+     * Put a call on hold.
+     */
     Future hold() => new Future.error(new UnimplementedError());
 
     //TODO: Check return value of hangup.
