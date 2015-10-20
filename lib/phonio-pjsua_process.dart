@@ -13,12 +13,18 @@
 
 part of phonio;
 
+/**
+ * Global configuration values.
+ * TODO: Move to dedicated file.
+ */
 abstract class Configuration {
   static int Loglevel = 2;
   static bool reuseProcess = true;
 }
 
-
+/**
+ * Keys used in communication with the basic_agent process.
+ */
 abstract class PJSUACommand {
   static const String REGISTER            = 'r';
   static const String UNREGISTER          = 'u';
@@ -36,6 +42,9 @@ abstract class PJSUACommand {
     => '${PJSUACommand._DIAL}sip:${extension}';
 }
 
+/**
+ * Events that may occur within the agent.
+ */
 abstract class PJSUAEvent {
   static const String READY          = '!READY';
   static const String DIALING        = '!RINGING';
@@ -44,14 +53,17 @@ abstract class PJSUAEvent {
   static const String CALL_MEDIA     = 'CALL_MEDIA';
 }
 
+/**
+ * Valid responses to commands.
+ */
 abstract class PJSUAResponse {
   static const String OK    = '+OK';
   static const String ERROR = '-ERROR';
 }
 
-
-
-//TODO: Throttle the rate of commands being sent per second, as the SIP process tends to choke on them.
+/**
+ * [PJSUAProcess] class. Implements the SIPPhone interface.
+ */
 class PJSUAProcess extends SIPPhone {
 
   static const String classname = '${libraryName}.PJSUAProcess';
@@ -66,7 +78,7 @@ class PJSUAProcess extends SIPPhone {
     int get pid => this._process != null ? this._process.pid : -1;
     int get ID => this.contact.hashCode;
 
-
+    /// Storing the currently active calls.
     Map<int,Call> _calls = {};
     Iterable<Call> get activeCalls => _calls.values;
 

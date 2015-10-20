@@ -97,7 +97,7 @@ class SNOMPhone extends SIPPhone {
   static const String classname = '${libraryName}.SNOMPhone';
 
   final Uri    _host;
-  static final Logger log                = new Logger(SNOMPhone.classname);
+  static final Logger _log                = new Logger(SNOMPhone.classname);
   final HTTPClientWrapper _client = new HTTPClientWrapper();
 
   int get ID => this.contact.hashCode;
@@ -157,7 +157,7 @@ class SNOMPhone extends SIPPhone {
   Future hangupSpecific(Call call) => new Future.error(new UnimplementedError());
 
   Future hangupAll() {
-    log.shout('The hangupAll() method is inpure and only hangs up the current call');
+    _log.shout('The hangupAll() method is inpure and only hangs up the current call');
     return this.hangupCurrentCall();
   }
 
@@ -256,10 +256,10 @@ class SNOMPhone extends SIPPhone {
   Future<String> _enqueue (SNOMHTTPRequest request) {
       if (!this._busy) {
         this._busy = true;
-        log.finest('No requests enqueued. Sending request directly.');
+        _log.finest('No requests enqueued. Sending request directly.');
         return this._performRequest (request);
       } else {
-        log.finest('Requests enqueued. Enqueueing this request.');
+        _log.finest('Requests enqueued. Enqueueing this request.');
 
         this._httpRequestQueue.add(request);
         return request.response.future;
