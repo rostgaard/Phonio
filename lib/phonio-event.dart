@@ -13,6 +13,9 @@
 
 part of phonio;
 
+/**
+ * JSON serialization and de-serialization keys.
+ */
 abstract class EventJSONKey {
   static const String accountState     = 'account_state';
   static const String callConnected    = 'call_connected';
@@ -29,6 +32,9 @@ abstract class EventJSONKey {
   static const String callee           = 'callee';
 }
 
+/**
+ * Base interface for an event.
+ */
 abstract class Event {
 
   String   get eventName;

@@ -48,6 +48,9 @@ class Call {
 
 }
 
+/**
+ * Call state "enum".
+ */
 abstract class CallState {
   static const String UNKNOWN  = 'UNKNOWN';
   static const String HELD     = 'HELD';

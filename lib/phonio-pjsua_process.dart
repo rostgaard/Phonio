@@ -75,13 +75,22 @@ class PJSUAProcess extends SIPPhone {
     Completer       _readyCompleter = new Completer();
     int             _exitCode = null;
 
+    /// The PID of the backed process. Returns -1 if the process does not run.
     int get pid => this._process != null ? this._process.pid : -1;
+
+    /// The unique, yet replcatable id of the object.
     int get ID => this.contact.hashCode;
 
     /// Storing the currently active calls.
     Map<int,Call> _calls = {};
+
+    /// The currently active calls of the phone. Active means not hung up.
     Iterable<Call> get activeCalls => _calls.values;
 
+    /**
+     * The string represenation will give the process id, prefixed by name
+     * of the class.
+     */
     @override
     String toString() => '${this.runtimeType} (pid ${this.pid})';
 
