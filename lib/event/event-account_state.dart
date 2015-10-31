@@ -13,22 +13,41 @@
 
 part of phonio;
 
+/**
+ * Occurs if there are changes in account state. A change may be a registration
+ * or and unregistration.
+ */
 class AccountState implements Event {
+  /// The ID of the account.
   final String accountID;
-  final bool   signedIn;
 
-  String   get eventName => EventJSONKey.accountState;
+  /// Indicates if the account is signed in or not.
+  final bool signedIn;
 
-  AccountState (this.accountID, this.signedIn);
+  String get eventName => EventJSONKey.accountState;
 
+  /**
+   * Default constructor.
+   */
+  AccountState(this.accountID, this.signedIn);
+
+  /**
+   * JSON serialization function.
+   */
   @override
   Map toJson() => this.asMap;
 
-  Map get asMap =>
-      { EventJSONKey.accountID : this.accountID,
-        EventJSONKey.signedIn  : this.signedIn };
+  /**
+   * Returns a map representation of the [AccountState] object.
+   */
+  Map get asMap => {
+        EventJSONKey.accountID: this.accountID,
+        EventJSONKey.signedIn: this.signedIn
+      };
 
+  /**
+   * Returns a string representation of the [AccountState] object.
+   */
   @override
   String toString() => this.toJson().toString();
-
 }
