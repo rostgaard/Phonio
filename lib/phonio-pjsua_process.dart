@@ -252,21 +252,23 @@ class PJSUAProcess extends SIPPhone {
             }
           });
 
-          this._process.stdout.transform(ASCII.decoder)
+          this._process.stdout
+            .transform(ASCII.decoder)
             .transform(new LineSplitter())
-            .listen(this._processOutput);
+            .listen(this._processOutput, onError : (error) => log.severe ('Error:', error));
 
-          this._process.stderr.transform(ASCII.decoder)
+
+          this._process.stderr
+            .transform(ASCII.decoder)
             .transform(new LineSplitter()).listen((String line) {
             log.severe('(pipe, stderr) $line');
-          });
-          return this.whenReady();
+          }, onError : (error) => log.severe ('Error:', error));
 
+          return this.whenReady();
          });
       }
 
       return new Future.error(new StateError('Process already started.'));
-
     }
 
     /**
