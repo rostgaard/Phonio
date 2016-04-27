@@ -16,7 +16,6 @@ library phonio;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_route/shelf_route.dart' as route;
-import 'package:shelf_exception_response/exception_response.dart';
 import 'dart:async';
 import 'dart:io' as IO;
 import 'dart:convert';

@@ -46,7 +46,6 @@ class SNOMActionGateway {
 
     var handler = const Pipeline()
         .addMiddleware(logRequests())
-        .addMiddleware(exceptionResponse())
         .addHandler(router.handler);
 
     //route.printRoutes(router);
