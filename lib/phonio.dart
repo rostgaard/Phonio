@@ -40,4 +40,3 @@ part 'phonio-snom_phone.dart';
 part 'phonio-snom_action_gateway.dart';
 
 const String libraryName = 'phonio';
-

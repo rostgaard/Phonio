@@ -94,6 +94,9 @@ class PJSUAProcess extends SIPPhone {
     @override
     String toString() => '${this.runtimeType} (pid ${this.pid})';
 
+    /**
+     *
+     */
     @override
     Map toJson() {
       Map root = super.toJson();
