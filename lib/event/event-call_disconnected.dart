@@ -14,21 +14,26 @@
 part of phonio;
 
 class CallDisconnected implements Event {
-  final String callID;
+  /// The ID of the call that was connected.
+  final String callId;
 
-  String   get eventName => EventJSONKey.callDisconnected;
-
-  CallDisconnected(this.callID);
+  /// Default constructor
+  CallDisconnected(this.callId);
 
   @override
-  Map toJson() => this.asMap;
+  String get eventName => _EventJSONKey._callDisconnected;
 
-  Map get asMap =>
-      {
-        EventJSONKey.callID : this.callID,
+  ///
+  @deprecated
+  String get callID => callId;
+  @override
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        _EventJSONKey._callId: callId,
       };
 
-  @override
-  String toString() => this.toJson().toString();
+  @deprecated
+  Map<String, dynamic> get asMap => toJson();
 
+  @override
+  String toString() => toJson().toString();
 }

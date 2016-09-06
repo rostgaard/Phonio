@@ -14,23 +14,24 @@
 part of phonio;
 
 class SIPAccount {
-  String username   = null;
-  String password   = null;
-  String server     = null;
+  String username;
+  String password;
+  String server;
 
-  SIPAccount (this.username, this.password, this.server, {bool shouldRegister : false});
+  SIPAccount(this.username, this.password, this.server,
+      {bool shouldRegister: false});
 
-  Map get asMap => {
-    'username' : this.username,
-    'password' : '${password.runes.first}*****${password.runes.last}',
-    'server'   : this.server,
-  };
+  @deprecated
+  Map<String, dynamic> get asMap => toJson();
 
-  Map toJson() => this.asMap;
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'username': username,
+        'password': '${password.runes.first}*****${password.runes.last}',
+        'server': server,
+      };
 
   @override
-  String toString() => this.username;
+  String toString() => username;
 
-  String get inContactFormat => '${this.username}@${this.server}';
-
+  String get inContactFormat => '$username@$server';
 }

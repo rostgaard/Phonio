@@ -13,415 +13,430 @@
 
 part of phonio;
 
-/**
- * Global configuration values.
- * TODO: Move to dedicated file.
- */
+/// Global configuration values.
+///
+/// TODO: Move to dedicated file.
 abstract class Configuration {
-  static int Loglevel = 2;
+  static int loglevel = 2;
   static bool reuseProcess = true;
 }
 
-/**
- * Keys used in communication with the basic_agent process.
- */
-abstract class PJSUACommand {
-  static const String REGISTER            = 'r';
-  static const String UNREGISTER          = 'u';
-  static const String HANGUP_CURRENT      = 'H';
-  static const String HANGUP_SPECIFIC     = 'K';
-  static const String HANGUP_ALL          = 'h';
-  static const String _DIAL               = 'd';
-  static const String ENABLE_AUTO_ANSWER  = 'a';
-  static const String DISABLE_AUTO_ANSWER = 'm';
-  static const String ANSWER_CALL         = 'p';
-  static const String PICKUP_CALL         = 'P';
-  static const String QUIT                = 'q';
+/// Keys used in communication with the basic_agent process.
+abstract class _PJSUACommand {
+  static const String _register = 'r';
+  static const String _unregister = 'u';
+  static const String _hangupCurrent = 'H';
+  static const String _hangupSpecific = 'K';
+  static const String _hangupAll = 'h';
+  static const String _dial = 'd';
+  static const String _enableAutoAnswer = 'a';
+  static const String _disableAutoAnswer = 'm';
+  static const String _answerCall = 'p';
+  static const String _pickupCall = 'P';
+  static const String _quit = 'q';
 
-  static String dialString (String extension)
-    => '${PJSUACommand._DIAL}sip:${extension}';
+  static String _dialString(String extension) =>
+      '${_PJSUACommand._dial}sip:$extension';
 }
 
-/**
- * Events that may occur within the agent.
- */
-abstract class PJSUAEvent {
-  static const String READY          = '!READY';
-  static const String DIALING        = '!RINGING';
-  static const String INCOMING_CALL  = 'CALL_INCOMING';
-  static const String OUTGOING_CALL  = 'CALL_OUTGOING';
-  static const String CALL_MEDIA     = 'CALL_MEDIA';
+/// Events that may occur within the agent.
+abstract class _PJSUAEvent {
+  static const String _ready = '!READY';
+  //static const String _ringing = '!RINGING';
+  static const String _incomingCall = 'CALL_INCOMING';
+  static const String _outgoingCall = 'CALL_OUTGOING';
+  static const String _callMedia = 'CALL_MEDIA';
 }
 
-/**
- * Valid responses to commands.
- */
-abstract class PJSUAResponse {
-  static const String OK    = '+OK';
-  static const String ERROR = '-ERROR';
-}
+// /// Valid responses to commands.
+// abstract class _PJSUAResponse {
+//   static const String _ok = '+OK';
+//   static const String _error = '-ERROR';
+// }
 
-/**
- * [PJSUAProcess] class. Implements the SIPPhone interface.
- */
+/// [PJSUAProcess] class. Implements the SIPPhone interface.
 class PJSUAProcess extends SIPPhone {
+  final Logger _localLog = new Logger('$_libraryName.PJSUAProcess');
+  final String binaryPath;
+  final int port;
+  io.Process _process;
+  Completer<Null> _readyCompleter = new Completer<Null>();
+  int _exitCode;
 
-  static const String classname = '${libraryName}.PJSUAProcess';
+  PJSUAProcess(this.binaryPath, this.port);
 
-  static final Logger log         = new Logger(PJSUAProcess.classname);
-    final String      binaryPath;
-    final int port;
-    IO.Process       _process    = null;
-    Completer       _readyCompleter = new Completer();
-    int             _exitCode = null;
+  /// The PID of the backed process. Returns -1 if the process does not run.
+  int get pid => _process != null ? _process.pid : -1;
 
-    /// The PID of the backed process. Returns -1 if the process does not run.
-    int get pid => this._process != null ? this._process.pid : -1;
+  /// The unique, yet replcatable id of the object.
+  @override
+  int get id => contact.hashCode;
 
-    /// The unique, yet replcatable id of the object.
-    int get ID => this.contact.hashCode;
+  @override
+  @deprecated
+  int get ID => id;
 
-    /// Storing the currently active calls.
-    Map<int,Call> _calls = {};
+  /// Storing the currently active calls.
+  final Map<int, Call> _calls = <int, Call>{};
 
-    /// The currently active calls of the phone. Active means not hung up.
-    Iterable<Call> get activeCalls => _calls.values;
+  /// The currently active calls of the phone. Active means not hung up.
+  @override
+  Iterable<Call> get activeCalls => _calls.values;
 
-    /**
-     * The string represenation will give the process id, prefixed by name
-     * of the class.
-     */
-    @override
-    String toString() => '${this.runtimeType} (pid ${this.pid})';
+  /// The string representation will give the process id, prefixed by name
+  /// of the class.
+  @override
+  String toString() => '$runtimeType (pid $pid)';
 
-    /**
-     *
-     */
-    @override
-    Map toJson() {
-      Map root = super.toJson();
-      Map extension = {
-        'binary_path' : binaryPath,
-        'pid' : pid,
-        'ready' : ready,
-        'connected' : connected
-      };
+  /// Serialization function.
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> root = super.toJson();
+    Map<String, dynamic> extension = <String, dynamic>{
+      'binary_path': binaryPath,
+      'pid': pid,
+      'ready': ready,
+      'connected': connected
+    };
 
-      root['process'] = extension;
+    root['process'] = extension;
 
-      return root;
+    return root;
+  }
+
+  @override
+  String get contact => '${defaultAccount.inContactFormat}:$port';
+
+  @override
+  bool get ready => _readyCompleter.isCompleted;
+
+  int _defaultAccountID;
+
+  @override
+  SIPAccount get defaultAccount {
+    if (_defaultAccountID == null) {
+      return _accounts.first;
     }
 
-    String get contact => '${this.defaultAccount.inContactFormat}:${this.port}';
+    return _accounts[_defaultAccountID];
+  }
 
-    bool get ready => this._readyCompleter.isCompleted;
+  /// The Job queue is a simple FIFO of Futures that complete in-order.
+  Queue<Completer<String>> replyQueue = new Queue<Completer<String>>();
 
-    int _defaultAccountID = null;
-    SIPAccount get defaultAccount {
-      if (this._defaultAccountID == null) {
-        return this._accounts.first;
-      }
+  bool get connected => _process != null;
 
-      return this._accounts[this._defaultAccountID];
+  @override
+  Future<Null> autoAnswer(bool enabled, {SIPAccount account: null}) async {
+    // Default to the first account
+    int accountID = (account != null ? _accounts.indexOf(account) + 1 : 1);
+
+    _localLog.finest(
+        '${enabled ? 'Enabling' : 'Disabling' } autoanswer on account $account');
+
+    await _subscribeAndSend((enabled
+        ? _PJSUACommand._enableAutoAnswer + accountID.toString()
+        : _PJSUACommand._disableAutoAnswer));
+  }
+
+  @override
+  Future<Null> initialize() async {
+    if (!ready) {
+      await connect();
+    } else {
+      _eventController = new StreamController<Event>.broadcast();
+    }
+  }
+
+  @override
+  Future<Null> teardown() async {
+    await hangupAll();
+    await _eventController.close();
+  }
+
+  @override
+  Future<Null> finalize() async {
+    if (!_eventController.isClosed) {
+      await _eventController.close();
     }
 
-    /// The Job queue is a simple FIFO of Futures that complete in-order.
-    Queue<Completer<String>> replyQueue   = new Queue<Completer<String>>();
+    if (pid != -1) {
+      await quitProcess();
+    }
+  }
 
-    bool           get connected   => this._process != null;
-
-    PJSUAProcess (this.binaryPath, this.port);
-
-    Future autoAnswer(bool enabled, {SIPAccount account : null}) {
-      // Default to the first account
-      int accountID = (account != null ? this._accounts.indexOf(account)+1 : 1);
-
-      log.finest('${enabled ? 'Enabling' : 'Disabling' } autoanswer on account $account');
-
-      return this._subscribeAndSend((enabled ? PJSUACommand.ENABLE_AUTO_ANSWER+accountID.toString()
-                                             : PJSUACommand.DISABLE_AUTO_ANSWER));
+  /// Register a a SIP account with the process.
+  @override
+  Future<Null> register({SIPAccount account: null}) async {
+    if (account == null) {
+      account = defaultAccount;
+    } else {
+      _localLog.severe('$this only supports registering the default account.');
     }
 
-    Future initialize() =>
-        !ready
-        ? connect()
-        : new Future.value
-        (_eventController = new StreamController.broadcast());
+    await registerAccount();
+  }
 
-    Future teardown() => this.hangupAll()
-        .then((_) => _eventController.close());
+  /// Put a call on hold.
+  @override
+  Future<Null> hold() async {
+    throw new UnimplementedError();
+  }
 
-    Future finalize() =>
-        !_eventController.isClosed
-        ? _eventController.close()
-          .then((_) =>
-              pid != -1
-              ? quitProcess()
-              : null)
-        : pid != -1
-          ? quitProcess()
-          : null;
+  //TODO: Check return value of hangup.
+  @override
+  Future<Null> hangup() async {
+    await hangupCurrentCall();
+  }
 
-    /**
-     * Register a a SIP account with the process.
-     */
-    Future register({SIPAccount account : null}) {
-      if (account == null) {
-        account = this.defaultAccount;
-      }
-      else {
-        log.severe('$this only supports registering the default account.');
-      }
+  @override
+  Future<Null> answer() async {
+    await _subscribeAndSend(_PJSUACommand._answerCall);
+  }
 
-      return this.registerAccount();
+  @override
+  Future<Null> answerSpecific(Call call) async {
+    await _subscribeAndSend('${_PJSUACommand._pickupCall}${call.id}');
+  }
+
+  @override
+  Future<Null> hangupSpecific(Call call) async {
+    await _subscribeAndSend('${_PJSUACommand._hangupSpecific}${call.id}');
+  }
+
+  /// TODO: Check return value of hangupAll.
+  @override
+  Future<Null> hangupAll() async {
+    await hangupAllCalls();
+  }
+
+  @override
+  Future<Null> release(Call call) async {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Future<Null> transfer(Call destination) async {
+    throw new UnimplementedError();
+  }
+
+  Future<String> registerAccount() async {
+    return _subscribeAndSend(_PJSUACommand._register);
+  }
+
+  /// TODO: Return call. Null is an evil and wrong value to return.
+  @override
+  Future<Call> originate(String extension, {SIPAccount account: null}) {
+    if (account == null) {
+      account = defaultAccount;
     }
 
-    /**
-     * Put a call on hold.
-     */
-    Future hold() => new Future.error(new UnimplementedError());
+    return this
+        ._subscribeAndSend(_PJSUACommand._dialString(extension))
+        .then((_) => null);
+  }
 
-    //TODO: Check return value of hangup.
-    Future hangup() => hangupCurrentCall();
+  @override
+  Future<Null> unregister({SIPAccount account: null}) async {
+    _localLog.warning('Unregistering default account, as account handling '
+        'is not implemented');
+    await unregisterAccount();
+  }
 
-    Future answer() => this._subscribeAndSend(PJSUACommand.ANSWER_CALL);
+  Future<String> unregisterAccount() async {
+    return _subscribeAndSend(_PJSUACommand._unregister);
+  }
 
-    Future answerSpecific(Call call) =>
-        this._subscribeAndSend('${PJSUACommand.PICKUP_CALL}${call.ID}');
+  Future<String> hangupCurrentCall() async {
+    return _subscribeAndSend(_PJSUACommand._hangupCurrent);
+  }
 
-    Future hangupSpecific(Call call) =>
-        this._subscribeAndSend('${PJSUACommand.HANGUP_SPECIFIC}${call.ID}');
+  Future<Null> hangupAllCalls() async {
+    await _subscribeAndSend(_PJSUACommand._hangupAll);
+  }
 
-    //TODO: Check return value of hangupAll.
-    Future hangupAll() => this.hangupAllCalls();
-
-    Future release(Call call) => new Future.error(new UnimplementedError());
-
-    Future transfer(Call destination) => new Future.error(new UnimplementedError());
-
-    Future<String> registerAccount() => this._subscribeAndSend(PJSUACommand.REGISTER);
-
-    /**
-     * TODO: Return call. Null is an evil and wrong value to return.
-     */
-    Future<Call> originate (String extension, {SIPAccount account : null}) {
-      if (account == null) {
-        account = this.defaultAccount;
-      }
-
-      return this._subscribeAndSend
-          (PJSUACommand.dialString(extension))
-              .then ((_) => null);
+  Future<Null> connect() async {
+    if (_readyCompleter.isCompleted) {
+      return new Future<Null>.value(null);
     }
 
-    Future unregister({SIPAccount account : null}) {
-      log.warning('Unregistering default account, as account handling '
-                  'is not implemented');
-      return this.unregisterAccount();
-    }
+    if (!connected) {
+      _eventController = new StreamController<Event>.broadcast();
+      List<String> arguments = <String>[
+        defaultAccount.username,
+        defaultAccount.password,
+        defaultAccount.server,
+        port.toString(),
+        Configuration.loglevel.toString()
+      ];
 
-    Future<String> unregisterAccount() => this._subscribeAndSend(PJSUACommand.UNREGISTER);
+      replyQueue.map((Completer<String> completer) {
+        completer.completeError(new StateError('Process is starting'));
+      });
+      replyQueue.clear();
 
-    Future<String> hangupCurrentCall() => this._subscribeAndSend(PJSUACommand.HANGUP_CURRENT);
-    Future<String> hangupAllCalls() => this._subscribeAndSend(PJSUACommand.HANGUP_ALL);
+      return io.Process.start(binaryPath, arguments).then((io.Process process) {
+        _process = process;
 
-    Future connect () {
-      if (this._readyCompleter.isCompleted) {
-        return new Future.value(null);
-      }
-
-      if (!this.connected) {
-        this._eventController = new StreamController.broadcast();
-        List<String> arguments = [this.defaultAccount.username,
-                             this.defaultAccount.password,
-                             this.defaultAccount.server,
-                             this.port.toString(),
-                             Configuration.Loglevel.toString()];
-
-        this.replyQueue.map((Completer<String> completer) {
-          completer.completeError(new StateError('Process is starting'));
+        _process.exitCode.then((int exitCode) {
+          if (exitCode != 0) {
+            _localLog.severe('Process exited with status $exitCode.');
+          } else {
+            _localLog.finest('Process exited with status $exitCode.');
+          }
         });
-        this.replyQueue.clear();
 
-        return IO.Process.start(this.binaryPath , arguments).then((IO.Process process) {
-          this._process = process;
-
-          this._process.exitCode.then((int exitCode) {
-            if (exitCode != 0) {
-              log.severe('Process exited with status $exitCode.');
-            }
-            else {
-              log.finest('Process exited with status $exitCode.');
-            }
-          });
-
-          this._process.stdout
+        this
+            ._process
+            .stdout
             .transform(ASCII.decoder)
             .transform(new LineSplitter())
-            .listen(this._processOutput, onError : (error) => log.severe ('Error:', error));
+            .listen(_processOutput,
+                onError: (dynamic error) => _localLog.severe('Error:', error));
 
-
-          this._process.stderr
+        this
+            ._process
+            .stderr
             .transform(ASCII.decoder)
-            .transform(new LineSplitter()).listen((String line) {
-            log.severe('(pipe, stderr) $line');
-          }, onError : (error) => log.severe ('Error:', error));
+            .transform(new LineSplitter())
+            .listen((String line) {
+          _localLog.severe('(pipe, stderr) $line');
+        }, onError: (dynamic error) => _localLog.severe('Error:', error));
 
-          return this.whenReady();
-         });
-      }
-
-      return new Future.error(new StateError('Process already started.'));
+        return whenReady();
+      });
     }
 
-    /**
-     * Future returning when the process is ready. Should be used to assert that
-     * the process is ready before sending commands to it.
-     */
-    Future whenReady () {
-      if (this.ready) {
-        return new Future.value(null);
-      }
-      else {
-        return this._readyCompleter.future;
-      }
+    throw new StateError('Process already started.');
+  }
+
+  /// Future returning when the process is ready. Should be used to assert
+  /// that the process is ready before sending commands to it.
+  Future<Null> whenReady() async {
+    if (!ready) {
+      await _readyCompleter.future;
+    }
+  }
+
+  void _processOutput(String line) {
+    if (ready) {
+      _localLog.finest('(pid $pid) $line');
     }
 
-    void _processOutput (String line) {
-      if (this.ready) {
-        log.finest('(pid ${this.pid}) $line');
-      }
+    if (<String>['{'].any((String char) => line.startsWith(char))) {
+      _parseAndDispatch(line);
+    }
+  }
 
-      if (['{'].any((char) => line.startsWith(char))) {
-         this._parseAndDispatch(line);
-      }
-
+  void _parseAndDispatch(String line) {
+    Map<dynamic, dynamic> map = <dynamic, dynamic>{};
+    try {
+      map = JSON.decode(line);
+    } catch (error) {
+      _localLog.severe('Failed to parse line: "$line"');
     }
 
-    void _parseAndDispatch(String line) {
-      Map map = {};
-      try {
-        map = JSON.decode(line);
-      } catch (error) {
-        log.severe('Failed to parse line: "$line"');
-      }
+    if (map.containsKey('event')) {
+      if (map['event'] == _PJSUAEvent._ready) {
+        _readyCompleter.complete();
+      } else if (map['event'] == _PJSUAEvent._outgoingCall) {
+        final int callId = map['call']['id'];
+        final String callee = map['call']['extension'];
 
-      if (map.containsKey('event')) {
-        if(map['event'] == PJSUAEvent.READY) {
-          this._readyCompleter.complete();
+        Call call =
+            new Call(callId.toString(), callee, false, defaultAccount.username);
+        _calls[callId] = call;
 
-        }
+        Event outEvent = new CallOutgoing(call.id, call.callee);
 
-        else if(map['event'] == PJSUAEvent.OUTGOING_CALL) {
+        _addEvent(outEvent);
+      } else if (map['event'] == _PJSUAEvent._incomingCall) {
+        final int callId = map['call']['id'];
+        final String callee = map['call']['extension'];
+
+        Call call =
+            new Call(callId.toString(), callee, true, defaultAccount.username);
+        _calls[callId] = call;
+        Event inEvent = new CallIncoming(call.id, call.callee);
+
+        _addEvent(inEvent);
+      } else if (map['event'] == "CALL_TSX_STATE") {
+        //Ignore these for now.
+      } else if (map['event'] == "CALL_STATE") {
+        // Disconnect.
+        if (map['call']['state'] == 6) {
           final int callId = map['call']['id'];
-          final String callee = map['call']['extension'];
+          Event disconnectEvent = new CallDisconnected(callId.toString());
 
-          Call call = new Call(callId.toString(), callee, false, defaultAccount.username);
-          _calls[callId] = call;
-
-          Event outEvent = new CallOutgoing(call.ID, call.callee);
-
-          this._addEvent(outEvent);
-
+          _calls.remove(callId);
+          _addEvent(disconnectEvent);
         }
-
-        else if(map['event'] == PJSUAEvent.INCOMING_CALL) {
-          final int callId = map['call']['id'];
-          final String callee = map['call']['extension'];
-
-          Call call = new Call(callId.toString(), callee, true, defaultAccount.username);
-          _calls[callId] = call;
-          Event inEvent = new CallIncoming(call.ID, call.callee);
-
-          this._addEvent(inEvent);
-        }
-        else if(map['event'] == "CALL_TSX_STATE") {
-          //Ignore these for now.
-        }
-
-        else if(map['event'] == "CALL_STATE") {
-           // Disconnect.
-           if (map['call']['state'] == 6) {
-             final int callId = map['call']['id'];
-             Event disconnectEvent =
-                 new CallDisconnected(callId.toString());
-
-             _calls.remove(callId);
-             this._addEvent(disconnectEvent);
-           }
-        }
-        else if(map['event'] == PJSUAEvent.CALL_MEDIA) {
-          //final int callId = map['call']['id'];
-          //TODO: Update media state of call.
-        }
-        else {
-          log.severe('Unknown message: "$line"');
-        }
-
-
-      } else if (map.containsKey('reply')) {
-        this.replyQueue.removeFirst().complete(map['reply']);
+      } else if (map['event'] == _PJSUAEvent._callMedia) {
+        //final int callId = map['call']['id'];
+        //TODO: Update media state of call.
       } else {
-        log.severe('Unrecognized line: "$line"');
+        _localLog.severe('Unknown message: "$line"');
       }
+    } else if (map.containsKey('reply')) {
+      replyQueue.removeFirst().complete(map['reply']);
+    } else {
+      _localLog.severe('Unrecognized line: "$line"');
+    }
+  }
 
+  Future<String> _subscribeAndSend(String command) {
+    if (_process == null) {
+      return new Future<String>.error(new StateError('Process not started!'));
     }
 
-    Future<String> _subscribeAndSend (String command) {
-      if (this._process == null) {
-        return new Future.error(new StateError('Process not started!'));
-      }
+    Completer<String> ticket = new Completer<String>();
+    replyQueue.add(ticket);
 
-      Completer<String> ticket = new Completer<String>();
-      this.replyQueue.add(ticket);
+    _localLog.finest('(pid $pid) Sending command "$command"');
+    _process.stdin.writeln(command);
 
-      log.finest('(pid ${this.pid}) Sending command "$command"');
-      this._process.stdin.writeln(command);
+    return ticket.future;
+  }
 
-      return ticket.future;
+  Future<int> quitProcess() {
+    if (!_eventController.isClosed) {
+      _localLog.finest('Closing eventController');
+      _eventController.close();
     }
 
-    Future<int> quitProcess () {
-      if (!this._eventController.isClosed) {
-        log.finest('Closing eventController');
-        this._eventController.close();
-       }
+    if (_process == null) {
+      _localLog
+          .info('Process already terminated, returning last known exit code.');
+      return new Future<int>.value(_exitCode);
+    }
 
-      if (this._process == null) {
-        log.info('Process already terminated, returning last known exit code.');
-        return new Future.value(this._exitCode);
-      }
-
-      Future<int> waitForTermination () {
-
-        return this._process.exitCode
-          .then ((int exitCode) => this._exitCode = exitCode)
+    Future<int> waitForTermination() {
+      return _process.exitCode.then((int exitCode) => _exitCode = exitCode)
           // Kill the reference to the process when it is no longer running.
           .whenComplete(() {
-            this._process = null;
-          });
-      }
-
-      Future<int> trySigTerm () {
-        log.info('Process ${this.pid} not responding '
-                 'to QUIT command, Sending SIGTERM');
-        this._process.kill((IO.ProcessSignal.SIGTERM));
-        return waitForTermination();
-      }
-
-      Future doSigKill () {
-        log.warning('Sending SIGKILL to ${this._process.pid} as a last resort');
-        this._process.kill((IO.ProcessSignal.SIGKILL));
-        return waitForTermination();
-      }
-
-      return this._subscribeAndSend(PJSUACommand.QUIT)
-        .then((String reply) => waitForTermination())
-        .timeout(new Duration (seconds : 5), onTimeout: trySigTerm)
-        .timeout(new Duration (seconds : 10), onTimeout: doSigKill);
-
+        _process = null;
+      });
     }
 
-    Future waitFor (String line, {int timeoutSeconds : 10}) =>
-        new Future (() => throw new StateError('Not implemented!'));
- }
+    Future<int> trySigTerm() {
+      _localLog.info('Process $pid not responding '
+          'to QUIT command, Sending SIGTERM');
+      _process.kill((io.ProcessSignal.SIGTERM));
+      return waitForTermination();
+    }
+
+    Future<Null> doSigKill() async {
+      _localLog.warning('Sending SIGKILL to ${_process.pid} as a last resort');
+      _process.kill((io.ProcessSignal.SIGKILL));
+      await waitForTermination();
+    }
+
+    return this
+        ._subscribeAndSend(_PJSUACommand._quit)
+        .then((String reply) => waitForTermination())
+        .timeout(new Duration(seconds: 5), onTimeout: trySigTerm)
+        .timeout(new Duration(seconds: 10), onTimeout: doSigKill);
+  }
+
+  Future<Null> waitFor(String line) async => throw new UnimplementedError();
+}

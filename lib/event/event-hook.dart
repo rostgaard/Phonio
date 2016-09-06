@@ -13,22 +13,20 @@
 
 part of phonio;
 
-class Hook implements Event{
+class Hook implements Event {
   final bool isOn;
 
-  String   get eventName => EventJSONKey.hook;
-
-  Hook (this.isOn);
+  Hook(this.isOn);
 
   @override
-  Map toJson() => this.asMap;
-
-  Map get asMap =>
-      {
-        EventJSONKey.hook : this.isOn
-      };
+  String get eventName => _EventJSONKey._hook;
 
   @override
-  String toString() => this.toJson().toString();
+  Map<String, dynamic> toJson() => <String, dynamic>{_EventJSONKey._hook: isOn};
 
+  @deprecated
+  Map<String, dynamic> get asMap => toJson();
+
+  @override
+  String toString() => toJson().toString();
 }

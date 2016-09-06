@@ -13,22 +13,20 @@
 
 part of phonio;
 
-class DND implements Event{
+class DND implements Event {
   final bool isOn;
 
-  String   get eventName => EventJSONKey.DND;
-
-  DND (this.isOn);
+  DND(this.isOn);
 
   @override
-  Map toJson() => this.asMap;
-
-  Map get asMap =>
-      {
-        EventJSONKey.DND    : this.isOn
-      };
+  String get eventName => _EventJSONKey._dnd;
 
   @override
-  String toString() => this.toJson().toString();
+  Map<String, dynamic> toJson() => <String, dynamic>{_EventJSONKey._dnd: isOn};
 
+  @deprecated
+  Map<String, dynamic> get asMap => toJson();
+
+  @override
+  String toString() => toJson().toString();
 }

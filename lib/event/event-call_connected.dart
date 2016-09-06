@@ -13,20 +13,29 @@
 
 part of phonio;
 
-class CallConnected implements Event{
-  final String callID;
+/// Event that occurs when a call is connected.
+class CallConnected implements Event {
+  /// The ID of the call that was connected.
+  final String callId;
 
-  String   get eventName => EventJSONKey.callConnected;
+  /// Default constructor.
+  CallConnected(this.callId);
 
-  CallConnected (this.callID);
+  ///
+  @deprecated
+  String get callID => callId;
 
   @override
-  Map toJson() => this.asMap;
+  String get eventName => _EventJSONKey._callConnected;
 
-  Map get asMap =>
-      { EventJSONKey.callID : this.callID,
+  @override
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        _EventJSONKey._callId: callId,
       };
 
+  @deprecated
+  Map<String, dynamic> get asMap => toJson();
+
   @override
-  String toString() => this.toJson().toString();
+  String toString() => toJson().toString();
 }

@@ -13,41 +13,41 @@
 
 part of phonio;
 
-/**
- * Occurs if there are changes in account state. A change may be a registration
- * or and unregistration.
- */
+/// [AccountState] event. Occurs if there are changes in account state.
+///
+/// A change may be a registration or and unregistration.
 class AccountState implements Event {
   /// The ID of the account.
-  final String accountID;
+
+  final String accountId;
 
   /// Indicates if the account is signed in or not.
   final bool signedIn;
 
-  String get eventName => EventJSONKey.accountState;
+  /// Default constructor.
+  AccountState(this.accountId, this.signedIn);
 
-  /**
-   * Default constructor.
-   */
-  AccountState(this.accountID, this.signedIn);
-
-  /**
-   * JSON serialization function.
-   */
   @override
-  Map toJson() => this.asMap;
+  String get eventName => _EventJSONKey._accountState;
 
-  /**
-   * Returns a map representation of the [AccountState] object.
-   */
-  Map get asMap => {
-        EventJSONKey.accountID: this.accountID,
-        EventJSONKey.signedIn: this.signedIn
+  ///
+  @deprecated
+  String get accountID => accountId;
+
+  /// Returns a map representation of the [AccountState] object.
+  ///
+  /// May be used as serialization function.
+  @override
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        _EventJSONKey._accountId: accountId,
+        _EventJSONKey._signedIn: signedIn
       };
 
-  /**
-   * Returns a string representation of the [AccountState] object.
-   */
+  ///
+  @deprecated
+  Map<String, dynamic> get asMap => toJson();
+
+  /// Returns a string representation of the [AccountState] object.
   @override
-  String toString() => this.toJson().toString();
+  String toString() => toJson().toString();
 }

@@ -13,23 +13,30 @@
 
 part of phonio;
 
-class CallOutgoing implements Event{
-  final String callID;
+class CallOutgoing implements Event {
+  /// The ID of the call that was connected.
+  final String callId;
   final String callee;
 
-  String   get eventName => EventJSONKey.callOutgoing;
-
-  CallOutgoing (this.callID, this.callee);
+  /// Default constructor
+  CallOutgoing(this.callId, this.callee);
 
   @override
-  Map toJson() => this.asMap;
+  String get eventName => _EventJSONKey._callOutgoing;
 
-  Map get asMap =>
-      { EventJSONKey.callID : this.callID,
-        EventJSONKey.callee : this.callee
+  ///
+  @deprecated
+  String get callID => callId;
+
+  @override
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        _EventJSONKey._callId: callId,
+        _EventJSONKey._callee: callee
       };
 
-  @override
-  String toString() => this.toJson().toString();
+  @deprecated
+  Map<String, dynamic> get asMap => toJson();
 
+  @override
+  String toString() => toJson().toString();
 }

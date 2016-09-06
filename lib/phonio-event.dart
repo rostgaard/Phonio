@@ -13,33 +13,31 @@
 
 part of phonio;
 
-/**
- * JSON serialization and de-serialization keys.
- */
-abstract class EventJSONKey {
-  static const String accountState     = 'account_state';
-  static const String callConnected    = 'call_connected';
-  static const String callIncoming     = 'call_incoming';
-  static const String callInvite       = 'call_invite';
-  static const String callDisconnected = 'call_disconnected';
-  static const String callOutgoing     = 'call_outbound';
-  static const String DND              = 'dnd';
-  static const String hook             = 'hook';
+/// JSON serialization and de-serialization keys.
+abstract class _EventJSONKey {
+  static const String _accountState = 'account_state';
+  static const String _callConnected = 'call_connected';
+  static const String _callIncoming = 'call_incoming';
+  static const String _callInvite = 'call_invite';
+  static const String _callDisconnected = 'call_disconnected';
+  static const String _callOutgoing = 'call_outbound';
+  static const String _dnd = 'dnd';
+  static const String _hook = 'hook';
 
-  static const String accountID        = 'account_id';
-  static const String signedIn         = 'signed_in';
-  static const String callID           = 'call_id';
-  static const String callee           = 'callee';
+  static const String _accountId = 'account_id';
+  static const String _signedIn = 'signed_in';
+  static const String _callId = 'call_id';
+  static const String _callee = 'callee';
 }
 
-/**
- * Base interface for an event.
- */
+/// Base interface for an event.
 abstract class Event {
+  /// The name for the event.
+  String get eventName;
 
-  String   get eventName;
-  Map      toJson();
+  /// Serialization function.
+  Map<String, dynamic> toJson();
 
+  @override
   String toString();
-
 }

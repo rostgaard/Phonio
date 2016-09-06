@@ -14,46 +14,46 @@
 part of phonio;
 
 abstract class CallJSONKey {
-  static const String callID  = 'call_id';
-  static const String callee  = 'callee';
+  static const String callID = 'call_id';
+  static const String callee = 'callee';
   static const String inbound = 'inbound';
-
 }
 
-/**
- * Class representing a call within the phonio framework.
- */
+/// Class representing a call within the phonio framework.
 class Call {
-
-  final String ID;
+  final String id;
   final String callee;
-  final String callerID;
-  final bool   inbound;
+  final String callerId;
 
-  String state = CallState.UNKNOWN;
+  final bool inbound;
 
-  Call (this.ID, this.callee, this.inbound, this.callerID);
+  String state = CallState.unknown;
 
-  Map get asMap =>
-      {
-        CallJSONKey.callID : this.ID,
-        CallJSONKey.callee : this.callee,
-        CallJSONKey.inbound : this.inbound
+  Call(this.id, this.callee, this.inbound, this.callerId);
+
+  @deprecated
+  String get ID => id;
+
+  @deprecated
+  String get callerID => callerId;
+
+  @deprecated
+  Map<String, dynamic> get asMap => toJson();
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        CallJSONKey.callID: id,
+        CallJSONKey.callee: callee,
+        CallJSONKey.inbound: inbound
       };
 
-  Map toJson() => this.asMap;
-
   @override
-  String toString() => this.asMap.toString();
-
+  String toString() => toJson().toString();
 }
 
-/**
- * Call state "enum".
- */
+/// Call state "enum".
 abstract class CallState {
-  static const String UNKNOWN  = 'UNKNOWN';
-  static const String HELD     = 'HELD';
-  static const String SPEAKING = 'SPEAKING';
-  static const String RINGING  = 'HELD';
+  static const String unknown = 'UNKNOWN';
+  static const String held = 'HELD';
+  static const String speaking = 'SPEAKING';
+  static const String ringing = 'RINGING';
 }

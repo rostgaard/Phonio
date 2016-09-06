@@ -13,110 +13,106 @@
 
 part of phonio;
 
-/**
- * Interface specifying the minimum functionality that a concrete phone should
- * supply.
- * Basically, this covers account handling, call management and event
- * notification when, for instance, an incoming phone call arrives.
- */
+/// Interface specifying the minimum functionality that a concrete phone
+/// should supply.
+///
+/// Basically, this covers account handling, call management and event
+/// notification when, for instance, an incoming phone call arrives.
 abstract class SIPPhone {
-
-  /// Internal logger.
-  static Logger log = new Logger ('$libraryName.SIPPhone');
-
   /// IP address of the phone. Used in contact string.
-  String _IPaddress = null;
+  String _ipAddress;
 
   /// Identity of the phone, should be unique for _all_ generalization
   /// instances.
+  ///
+  /// Use [id] instead.
+  @deprecated
   int get ID;
+
+  int get id;
 
   /// The contact Uri of the phone.
   String get contact;
 
   bool get ready;
 
-  StreamController<Event> _eventController = new StreamController.broadcast();
+  StreamController<Event> _eventController =
+      new StreamController<Event>.broadcast();
 
-  Stream<Event> get eventStream => this._eventController.stream;
+  Stream<Event> get eventStream => _eventController.stream;
 
-  void _addEvent (Event event) {
-    if (! this._eventController.isClosed) {
-      this._eventController.add(event);
-    }
-    else {
-      log.info
-        ('Discarding event ${event.eventName} - eventcontroller is closed.');
+  void _addEvent(Event event) {
+    if (!_eventController.isClosed) {
+      _eventController.add(event);
+    } else {
+      new Logger('$_libraryName.SIPPhone').info(
+          'Discarding event ${event.eventName} - eventcontroller is closed.');
     }
   }
 
   @override
-  bool operator == (SIPPhone other) => this.ID == other.ID;
+  bool operator ==(Object other) => other is SIPPhone && id == other.id;
 
   @override
-  int get hashCode => this._IPaddress.hashCode;
+  int get hashCode => _ipAddress.hashCode;
 
   Iterable<Call> get activeCalls;
 
-  List<SIPAccount> _accounts = [];
+  List<SIPAccount> _accounts = <SIPAccount>[];
 
-  void addAccount(SIPAccount account) =>
-    this._accounts.add(account);
+  void addAccount(SIPAccount account) => _accounts.add(account);
 
-  Future initialize();
-  Future teardown();
-  Future finalize();
+  Future<Null> initialize();
+  Future<Null> teardown();
+  Future<Null> finalize();
 
-  Future register({SIPAccount account : null});
-  Future unregister({SIPAccount account : null});
+  Future<Null> register({SIPAccount account: null});
+  Future<Null> unregister({SIPAccount account: null});
 
   SIPAccount get defaultAccount;
 
-  Future autoAnswer(bool enabled, {SIPAccount account : null});
+  Future<Null> autoAnswer(bool enabled, {SIPAccount account: null});
 
-  Future<Call> originate (String extension, {SIPAccount account : null});
+  Future<Call> originate(String extension, {SIPAccount account: null});
 
-  Future hangup();
+  Future<Null> hangup();
 
-  Future answer();
+  Future<Null> answer();
 
-  Future answerSpecific(Call call);
+  Future<Null> answerSpecific(Call call);
 
-  Future hangupAll();
+  Future<Null> hangupAll();
 
-  Future hangupSpecific(Call call);
+  Future<Null> hangupSpecific(Call call);
 
-  Future hold();
+  Future<Null> hold();
 
-  Future release(Call call);
+  Future<Null> release(Call call);
 
-  Future transfer(Call destination);
+  Future<Null> transfer(Call destination);
 
-  Map toJson() =>  {
-    'type' : this.runtimeType.toString(),
-    'contact' : contact,
-    'id' : ID,
-    'active_calls' : activeCalls,
-    'accounts' : _accounts,
-    'default_account' : defaultAccount
-  };
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'type': runtimeType.toString(),
+        'contact': contact,
+        'id': id,
+        'active_calls': activeCalls,
+        'accounts': _accounts,
+        'default_account': defaultAccount
+      };
 }
 
+/// Collection of phones.
 class PhoneList extends IterableBase<SIPPhone> {
+  Map<int, SIPPhone> _phones = <int, SIPPhone>{};
 
-  Map<int, SIPPhone> _phones = null;
+  @override
+  Iterator<SIPPhone> get iterator => _phones.values.iterator;
 
-  Iterator get iterator => this._phones.values.iterator;
+  /// Lookup a phone from its IPv4 address.
+  SIPPhone lookup(String remoteIPv4) => throw new UnimplementedError();
 
-  lookup (String remoteIPv4) {
-
-  }
-
-  register (SIPPhone phone) {
-    this._phones[phone.ID] = phone;
+  /// Register a phone in the phone registry.
+  void register(SIPPhone phone) {
+    _phones[phone.id] = phone;
   }
 }
-
-
-
-

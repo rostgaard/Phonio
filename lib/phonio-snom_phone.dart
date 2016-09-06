@@ -13,115 +13,112 @@
 
 part of phonio;
 
-/**
- * Physical keys found on SNOM phones. Typically used in the context of
- * constructing [SNOMResource].
- */
+/// Physical keys found on SNOM phones. Typically used in the context of
+/// constructing [SNOMResource].
 abstract class SNOMKey {
-  static const String CANCEL = 'CANCEL';
-  static const String ENTER = 'ENTER';
-  static const String OFFHOOK = 'OFFHOOK';
-  static const String ONHOOK = 'ONHOOK';
-  static const String RIGHT = 'RIGHT';
-  static const String LEFT = 'LEFT';
-  static const String UP = 'UP';
-  static const String DOWN = 'DOWN';
-  static const String VOLUME_UP = 'VOLUME_UP';
-  static const String VOLUME_DOWN = 'VOLUME_DOWN';
-  static const String MENU = 'MENU';
-  static const String REDIAL = 'REDIAL';
-  static const String DND = 'DND';
-  static const String REC = 'REC';
-  static const String F1 = 'F1';
-  static const String F2 = 'F2';
-  static const String F3 = 'F3';
-  static const String F4 = 'F4';
-  static const String SPEAKER = 'SPEAKER';
-  static const String HEADSET = 'HEADSET';
-  static const String TRANSFER = 'TRANSFER';
-  static const String F_HOLD = 'F_HOLD';
-  static const String NUM_0 = '0';
-  static const String NUM_1 = '1';
-  static const String NUM_2 = '2';
-  static const String NUM_3 = '3';
-  static const String NUM_4 = '4';
-  static const String NUM_5 = '5';
-  static const String NUM_6 = '6';
-  static const String NUM_7 = '7';
-  static const String NUM_8 = '8';
-  static const String NUM_9 = '9';
+  static const String cancel = 'CANCEL';
+  static const String enter = 'ENTER';
+  static const String offHook = 'OFFHOOK';
+  static const String onHook = 'ONHOOK';
+  static const String right = 'RIGHT';
+  static const String left = 'LEFT';
+  static const String up = 'UP';
+  static const String down = 'DOWN';
+  static const String volumeUp = 'VOLUME_UP';
+  static const String volumeDown = 'VOLUME_DOWN';
+  static const String menu = 'MENU';
+  static const String redial = 'REDIAL';
+  static const String dnd = 'DND';
+  static const String rec = 'REC';
+  static const String f1 = 'F1';
+  static const String f2 = 'F2';
+  static const String f3 = 'F3';
+  static const String f4 = 'F4';
+  static const String speaker = 'SPEAKER';
+  static const String headset = 'HEADSET';
+  static const String transfer = 'TRANSFER';
+  static const String fHold = 'F_HOLD';
+  static const String num0 = '0';
+  static const String num1 = '1';
+  static const String num2 = '2';
+  static const String num3 = '3';
+  static const String num4 = '4';
+  static const String num5 = '5';
+  static const String num6 = '6';
+  static const String num7 = '7';
+  static const String num8 = '8';
+  static const String num9 = '9';
   static const String asterisk = '*';
   static const String octothorpe = '#';
-  static String P(int index) => 'P${index}';
-  static String EK(int index) => 'Ek${index}';
+  static String p(int index) => 'P$index';
+  static String ek(int index) => 'Ek$index';
 }
 
-/**
- * A resource on a SNOM embedded webserver. Used for constructing Uri's that
- * send commands to the phone and trieve status information.
- */
+/// A resource on a SNOM embedded webserver. Used for constructing Uri's
+/// that send commands to the phone and trieve status information.
 abstract class SNOMResource {
   static String _commandResource = '/command.htm';
 
-  static Uri Command(Uri base, String key) => Uri.parse('${base.toString()}$_commandResource?key=$key');
-  static Uri Dial(Uri base) => Uri.parse('${base.toString()}/index.htm');
+  static Uri command(Uri base, String key) =>
+      Uri.parse('${base.toString()}$_commandResource?key=$key');
+  static Uri dial(Uri base) => Uri.parse('${base.toString()}/index.htm');
 
-  static Uri AutoAnswer(Uri base) => Uri.parse('${base.toString()}/line_sip.htm');
+  static Uri autoAnswer(Uri base) =>
+      Uri.parse('${base.toString()}/line_sip.htm');
 
-  static Uri ActionURL(Uri base) => Uri.parse('${base.toString()}/action.htm');
+  static Uri actionURL(Uri base) => Uri.parse('${base.toString()}/action.htm');
 }
-
 
 class SNOMHTTPRequest {
+  final String method;
+  final Uri uri;
+  final String body;
+  final Completer<String> response = new Completer<String>();
 
-  static const String GET  = 'GET';
-  static const String POST = 'POST';
-
-  String method;
-  Uri    uri;
-  String body;
-  Completer<String> response = new Completer<String>();
+  SNOMHTTPRequest(this.method, this.uri, {this.body: ''});
 }
 
-
-/**
- * This agent have a builtin throttle mechanism that prevents commands from
- * being sent too fast to the phone. This prevents the remote webserver from
- * choking on them and sending back incomplete headers.
- *
- * TODO: Enable call listing and handling of specific calls.
- */
-
+/// SNOM phone agent wrapper.
+///
+/// This agent have a builtin throttle mechanism that prevents commands
+/// from being sent too fast to the phone.
+/// This prevents the remote webserver from choking on them and sending
+/// back incomplete headers.
+///
+/// TODO: Enable call listing and handling of specific calls.
 class SNOMPhone extends SIPPhone {
-
-  static const String classname = '${libraryName}.SNOMPhone';
-
-  final Uri    _host;
-  static final Logger _log                = new Logger(SNOMPhone.classname);
+  final Uri _host;
+  final Logger _localLog = new Logger('$_libraryName.SNOMPhone');
   final HTTPClientWrapper _client = new HTTPClientWrapper();
 
-  int get ID => this.contact.hashCode;
+  SNOMPhone(this._host);
 
+  @override
+  int get id => contact.hashCode;
+  @override
+  int get ID => id;
+
+  @override
   bool get ready => true;
 
   /// Default sip port. Change if needed.
   int port = 5060;
 
-  List<SIPAccount> accounts   = [];
+  List<SIPAccount> accounts = <SIPAccount>[];
 
+  @override
   List<Call> get activeCalls => throw new UnimplementedError('Implement me!');
 
-  Future answerSpecific(Call call) =>
+  @override
+  Future<Null> answerSpecific(Call call) =>
       throw new UnimplementedError('Implement me!');
 
-  /**
-   * Returns a map represenation of the phone.
-   */
+  /// Returns a map represenation of the phone.
   @override
-  Map toJson() {
-    Map root = super.toJson();
-    Map extension = {
-      'host' : _host.toString(),
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> root = super.toJson();
+    Map<String, dynamic> extension = <String, dynamic>{
+      'host': _host.toString(),
     };
 
     root['snom_phone'] = extension;
@@ -129,267 +126,261 @@ class SNOMPhone extends SIPPhone {
     return root;
   }
 
-  String get contact => '${this.defaultAccount.inContactFormat}:${this.port}';
+  @override
+  String get contact => '${defaultAccount.inContactFormat}:$port';
 
-  /// TODO: Implement.
-  SIPAccount get defaultAccount => throw new StateError('Not implemented!');
+  @override
+  SIPAccount get defaultAccount => throw new UnimplementedError();
 
   /// Work queue related fields.
-  Queue<SNOMHTTPRequest> _httpRequestQueue = new Queue();
+  Queue<SNOMHTTPRequest> _httpRequestQueue = new Queue<SNOMHTTPRequest>();
   bool _busy = false;
 
-  /**
-   * Returns a map represenation of the phone.
-   */
+  @override
+  Future<Null> initialize() => throw new UnimplementedError(
+      'WIP: Should push the account and callback information to the phone.');
 
-  Future initialize () => throw new UnimplementedError
-      ('WIP: Should push the account and callback information to the phone.');
+  @override
+  Future<Null> teardown() => throw new UnimplementedError();
 
-  Future teardown() => throw new UnimplementedError();
-  Future register({SIPAccount account : null}) => throw new UnimplementedError();
-  Future unregister({SIPAccount account : null}) => throw new UnimplementedError();
-  bool get connected => this._host != null;
+  @override
+  Future<Null> register({SIPAccount account: null}) =>
+      throw new UnimplementedError();
 
-  SNOMPhone(this._host);
+  @override
+  Future<Null> unregister({SIPAccount account: null}) =>
+      throw new UnimplementedError();
+  bool get connected => _host != null;
 
-  Future hangup() => this.hangupCurrentCall();
-
-  Future hangupSpecific(Call call) => new Future.error(new UnimplementedError());
-
-  Future hangupAll() {
-    _log.shout('The hangupAll() method is inpure and only hangs up the current call');
-    return this.hangupCurrentCall();
+  @override
+  Future<Null> hangup() async {
+    await hangupCurrentCall();
   }
 
-  Future answer () {
-    SNOMHTTPRequest request = new SNOMHTTPRequest()
-      ..method = 'GET'
-      ..uri    = SNOMResource.Command(this._host, SNOMKey.F_HOLD);
+  @override
+  Future<Null> hangupSpecific(Call call) async =>
+      throw new UnimplementedError();
 
-    return this._enqueue(request);
+  @override
+  Future<Null> hangupAll() async {
+    _localLog.shout(
+        'The hangupAll() method is inpure and only hangs up the current call');
+    await hangupCurrentCall();
   }
 
-  Future hold() {
-    SNOMHTTPRequest request = new SNOMHTTPRequest()
-                      ..method = 'GET'
-                      ..uri    = SNOMResource.Command(this._host, SNOMKey.F_HOLD);
+  @override
+  Future<Null> answer() async {
+    SNOMHTTPRequest request =
+        new SNOMHTTPRequest('GET', SNOMResource.command(_host, SNOMKey.fHold));
 
-    return this._enqueue(request);
+    await _enqueue(request);
+  }
+
+  @override
+  Future<Null> hold() async {
+    SNOMHTTPRequest request =
+        new SNOMHTTPRequest('GET', SNOMResource.command(_host, SNOMKey.fHold));
+
+    await _enqueue(request);
   }
 
   Future<bool> isSnomEmbeddedServer() {
-
-    return this._client.getResponse(this._host)
-        .then((IO.HttpClientResponse response) =>
-            response.headers.value('server').contains('snom embedded'));
+    return _client.getResponse(_host).then((io.HttpClientResponse response) =>
+        response.headers.value('server').contains('snom embedded'));
   }
 
-  Future setActionURL (Map<String, String> actionURLs) {
+  Future<String> setActionURL(Map<String, String> actionURLs) {
     String buf = '';
     actionURLs.forEach((String key, String value) {
       buf = buf + '$key:${Uri.encodeComponent(value)}\r\n';
     });
     buf = buf + 'Settings:Apply';
 
-    SNOMHTTPRequest request = new SNOMHTTPRequest()
-                      ..method = SNOMHTTPRequest.POST
-                      ..uri    = SNOMResource.ActionURL(this._host)
-                      ..body   = buf;
+    SNOMHTTPRequest request =
+        new SNOMHTTPRequest('POST', SNOMResource.actionURL(_host), body: buf);
 
-
-    return this._enqueue(request);
+    return _enqueue(request);
   }
 
-  Future release(Call call) => new Future.error(new StateError('Not implemented!'));
+  @override
+  Future<Null> release(Call call) async => throw new UnimplementedError();
 
-  Future transfer(Call destination) => new Future.error(new StateError('Not implemented!'));
+  @override
+  Future<Null> transfer(Call destination) async =>
+      throw new UnimplementedError();
 
-  Future autoAnswer(bool enabled, {SIPAccount account : null}) {
-
+  @override
+  Future<Null> autoAnswer(bool enabled, {SIPAccount account: null}) async {
     //XXX: Add _REAL_ account index!
     int accountIndex = 1;
 
-    SNOMHTTPRequest request = new SNOMHTTPRequest()
-                      ..method = SNOMHTTPRequest.POST
-                      ..uri    = SNOMResource.AutoAnswer(this._host)
-                      ..body   = 'user_auto_connect${accountIndex}:${enabled ? 'on' : 'off'}\r\nSettings:Apply';
+    final String payload =
+        'user_auto_connect$accountIndex:${enabled ? 'on' : 'off'}\r\n'
+        'Settings:Apply';
 
+    SNOMHTTPRequest request = new SNOMHTTPRequest(
+        'POST', SNOMResource.autoAnswer(_host),
+        body: payload);
 
-    return this._enqueue(request);
+    await _enqueue(request);
   }
 
   Future<String> hangupCurrentCall() {
-    SNOMHTTPRequest request = new SNOMHTTPRequest()
-                      ..method = 'GET'
-                      ..uri    = SNOMResource.Command(this._host, SNOMKey.CANCEL);
+    SNOMHTTPRequest request =
+        new SNOMHTTPRequest('GET', SNOMResource.command(_host, SNOMKey.cancel));
 
-    return this._enqueue(request);
+    return _enqueue(request);
   }
 
-  Future finalize() => throw new UnimplementedError('Implement me!');
+  @override
+  Future<Null> finalize() async =>
+      throw new UnimplementedError('Implement me!');
 
-  Future<Call> originate (String extension, {SIPAccount account : null}) {
-      Completer<Call> completer = new Completer();
+  @override
+  Future<Call> originate(String extension, {SIPAccount account: null}) {
+    Completer<Call> completer = new Completer<Call>();
 
-      SNOMHTTPRequest request = new SNOMHTTPRequest()
-                      ..method = 'POST'
-                      ..uri    = SNOMResource.Dial(this._host)
-                      ..body   = "NUMBER:$extension";
+    SNOMHTTPRequest request = new SNOMHTTPRequest(
+        'POST', SNOMResource.dial(_host),
+        body: "NUMBER:$extension");
 
-    this.eventStream.firstWhere((Event event) => event is CallOutgoing)
-       .then((CallOutgoing e) {
-          Call call = new Call(e.callID, e.callee, false, defaultAccount.username);
-          completer.complete(call);
-       })
-       .catchError((error, stackTrace) => completer.completeError(error, stackTrace));
+    this
+        .eventStream
+        .firstWhere((Event event) => event is CallOutgoing)
+        .then((CallOutgoing e) {
+      Call call = new Call(e.callId, e.callee, false, defaultAccount.username);
+      completer.complete(call);
+    }).catchError((dynamic error, StackTrace stackTrace) =>
+            completer.completeError(error, stackTrace));
 
-     this._enqueue(request);
+    _enqueue(request);
 
     return completer.future;
   }
 
-  /**
-   * Every request sent to the phone is enqueued and executed in-order without
-   * the possibility to pipeline requests. The SNOM phones does not take kindly
-   * to concurrent requests, and this is a mean to prevent this from happening.
-   */
-  Future<String> _enqueue (SNOMHTTPRequest request) {
-      if (!this._busy) {
-        this._busy = true;
-        _log.finest('No requests enqueued. Sending request directly.');
-        return this._performRequest (request);
-      } else {
-        _log.finest('Requests enqueued. Enqueueing this request.');
+  /// Every request sent to the phone is enqueued and executed in-order
+  /// without the possibility to pipeline requests. The SNOM phones does
+  /// not take kindly to concurrent requests, and this is a mean to prevent
+  /// this from happening.
+  Future<String> _enqueue(SNOMHTTPRequest request) {
+    if (!_busy) {
+      _busy = true;
+      _localLog.finest('No requests enqueued. Sending request directly.');
+      return _performRequest(request);
+    } else {
+      _localLog.finest('Requests enqueued. Enqueueing this request.');
 
-        this._httpRequestQueue.add(request);
-        return request.response.future;
-      }
+      _httpRequestQueue.add(request);
+      return request.response.future;
+    }
   }
 
-  Future <String> _performRequest (SNOMHTTPRequest request) {
-
+  Future<String> _performRequest(SNOMHTTPRequest request) {
     void dispatchNext() {
-      if (this._httpRequestQueue.isNotEmpty) {
-        SNOMHTTPRequest currentRequest = this._httpRequestQueue.removeFirst();
+      if (_httpRequestQueue.isNotEmpty) {
+        SNOMHTTPRequest currentRequest = _httpRequestQueue.removeFirst();
 
-        this._performRequest (currentRequest)
-          .then((String response) => currentRequest.response.complete(response));
+        _performRequest(currentRequest).then(
+            (String response) => currentRequest.response.complete(response));
       } else {
-        this._busy = false;
+        _busy = false;
       }
     }
 
     switch (request.method.toUpperCase()) {
-      case 'GET' :
-        return this._client.get (request.uri)
-            ..whenComplete(() => new Future(dispatchNext));
+      case 'GET':
+        return _client.get(request.uri)
+          ..whenComplete(() => new Future<String>(dispatchNext));
 
-      case 'POST' :
-        return this._client.post (request.uri, request.body)
-            ..whenComplete(() => new Future(dispatchNext));
+      case 'POST':
+        return _client.post(request.uri, request.body)
+          ..whenComplete(() => new Future<String>(dispatchNext));
 
-      default :
+      default:
         throw new StateError('Unsupported HTTP method: ${request.method}');
-
     }
   }
 }
 
-/**
- * Convenience wrapper class for performing HTTP requests.
-  */
+/// Convenience wrapper class for performing HTTP requests.
 class HTTPClientWrapper {
+  final Logger _log = new Logger('$_libraryName.Client');
 
-  static final String className = '${libraryName}.Client';
-  static final Logger log       = new Logger(className);
+  final io.HttpClient client = new io.HttpClient();
 
-  final IO.HttpClient client    = new IO.HttpClient();
-  /**
-   * HTTP GET.
-   */
+  /// HTTP GET.
   Future<String> get(Uri resource) {
-    log.finest('GET $resource');
+    _log.finest('GET $resource');
 
     final Completer<String> completer = new Completer<String>();
 
-    client.getUrl(resource).then((IO.HttpClientRequest request) {
-        request.headers.set(IO.HttpHeaders.CONNECTION, 'keep-alive');
-        return request.close();
-      }).then((IO.HttpClientResponse response) {
-
+    client.getUrl(resource).then((io.HttpClientRequest request) {
+      request.headers.set(io.HttpHeaders.CONNECTION, 'keep-alive');
+      return request.close();
+    }).then((io.HttpClientResponse response) {
       String buffer = "";
       try {
-        response.transform(UTF8.decoder).listen((contents) {
-          buffer = '${buffer}${contents}';
+        response.transform(UTF8.decoder).listen((String contents) {
+          buffer = '$buffer$contents';
         }).onDone(() {
           completer.complete(buffer);
         });
       } catch (error, stacktrace) {
         completer.completeError(error, stacktrace);
       }
-    }).catchError((error, stackTrace) => completer.completeError(error,stackTrace));
+    }).catchError((dynamic error, StackTrace stackTrace) =>
+        completer.completeError(error, stackTrace));
 
     return completer.future;
-
   }
 
-  /**
-   * HTTP response.
-   */
-  Future<IO.HttpClientResponse> getResponse(Uri resource) {
-    log.finest('GET $resource');
+  /// HTTP response.
+  Future<io.HttpClientResponse> getResponse(Uri resource) {
+    _log.finest('GET $resource');
 
-    return client.getUrl(resource).then((IO.HttpClientRequest request) =>
-        request.close());
+    return client
+        .getUrl(resource)
+        .then((io.HttpClientRequest request) => request.close());
   }
 
-  /**
-   * HTTP POST.
-   */
+  /// HTTP POST.
   Future<String> post(Uri resource, String payload) {
-    log.finest(resource);
+    _log.finest(resource);
 
     final Completer<String> completer = new Completer<String>();
 
-    client.postUrl(resource).then((IO.HttpClientRequest request) {
-        request.headers.contentType = new IO.ContentType ('application',
-                                                          'x-www-form-urlencoded');
-        request.headers.set(IO.HttpHeaders.CONNECTION, 'keep-alive');
+    client.postUrl(resource).then((io.HttpClientRequest request) {
+      request.headers.contentType =
+          new io.ContentType('application', 'x-www-form-urlencoded');
+      request.headers.set(io.HttpHeaders.CONNECTION, 'keep-alive');
 
-        request.write(payload);
+      request.write(payload);
 
-        return request.close();
-
-      }).then((IO.HttpClientResponse response) {
+      return request.close();
+    }).then((io.HttpClientResponse response) {
       String buffer = "";
       if (response.statusCode == 200 || response.statusCode == 302) {
-
-        response.transform(UTF8.decoder).listen((contents) {
-          buffer = '${buffer}${contents}';
-
+        response.transform(UTF8.decoder).listen((String contents) {
+          buffer = '$buffer$contents';
         }).onDone(() {
-          log.finest('Completing');
+          _log.finest('Completing');
 
           completer.complete(buffer);
         });
       } else {
-        completer.completeError(new StateError('Bad response from server: ${response.headers}'));
+        completer.completeError(
+            new StateError('Bad response from server: ${response.headers}'));
       }
     });
 
     return completer.future;
   }
 
-  /**
-   * HTTP PUT. Not supported by SNOM.
-   */
+  /// HTTP PUT. Not supported by SNOM.
+  Future<String> put(Uri resource, String payload) async =>
+      throw new StateError('Not supported by SNOM phones.');
 
-  Future<String> put(Uri resource, String payload)
-     => new Future.error(new StateError('Not supported by SNOM phones.'));
-
-  /**
-   * HTTP DELETE. Not supported by SNOM.
-   */
-  Future<String> delete(Uri resource)
-     => new Future.error(new StateError('Not supported by SNOM phones.'));
+  /// HTTP DELETE. Not supported by SNOM.
+  Future<String> delete(Uri resource) async =>
+      throw new StateError('Not supported by SNOM phones.');
 }

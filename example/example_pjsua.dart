@@ -11,36 +11,33 @@
   this program; see the file COPYING3. If not, see http://www.gnu.org/licenses.
 */
 
-import 'package:phonio/phonio.dart' as Phonio;
+import 'package:phonio/phonio.dart' as phonio;
 
-/**
- * Example on how to use the PJSUA backend.
- */
+/// Example on how to use the PJSUA backend.
 void main() {
-
   // Define a SIP account.
-  Phonio.SIPAccount account =
-    new Phonio.SIPAccount('someuser', 'secretpassword', 'sip.example.com');
+  phonio.SIPAccount account =
+      new phonio.SIPAccount('someuser', 'secretpassword', 'sip.example.com');
 
-  /* Create a new process. Nothing will be started until the [initialize]
-     method is called. it needs the path to compatible PJSUA backed, which is
-     currently located in support tools of
-     https://github.com/Bitstackers/OpenReception-Integration-Tests */
-  Phonio.PJSUAProcess pjPhone =
-      new Phonio.PJSUAProcess ('bin/simple_agent', 5060);
+  // Create a new process. Nothing will be started until the [initialize]
+  // method is called. it needs the path to compatible PJSUA backed, which
+  // is currently located in support tools of
+  // https://github.com/Bitstackers/OpenReception-Integration-Tests
+  phonio.PJSUAProcess pjPhone =
+      new phonio.PJSUAProcess('bin/simple_agent', 5060);
 
   // Add the account to the phone.
   pjPhone.addAccount(account);
 
-  /* The initialize returns a future that completes when the backend
-     system process has returned ready */
-  pjPhone.initialize()
-    // Every communication method is a future that can be chained.
-    .then((_) => pjPhone.register())
-    .then((_) {
-      pjPhone.originate ('1109')
-        .then((Phonio.Call call) {
-          print ('Originated $call');
-      });
+  // The initialize returns a future that completes when the backend system
+  // process has returned ready
+  pjPhone
+      .initialize()
+      // Every communication method is a future that can be chained.
+      .then((_) => pjPhone.register())
+      .then((_) {
+    pjPhone.originate('1109').then((phonio.Call call) {
+      print('Originated $call');
+    });
   });
 }
