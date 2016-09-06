@@ -95,8 +95,6 @@ class SNOMPhone extends SIPPhone {
 
   @override
   int get id => contact.hashCode;
-  @override
-  int get ID => id;
 
   @override
   bool get ready => true;

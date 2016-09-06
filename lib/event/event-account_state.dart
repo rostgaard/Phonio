@@ -30,10 +30,6 @@ class AccountState implements Event {
   @override
   String get eventName => _EventJSONKey._accountState;
 
-  ///
-  @deprecated
-  String get accountID => accountId;
-
   /// Returns a map representation of the [AccountState] object.
   ///
   /// May be used as serialization function.
@@ -42,10 +38,6 @@ class AccountState implements Event {
         _EventJSONKey._accountId: accountId,
         _EventJSONKey._signedIn: signedIn
       };
-
-  ///
-  @deprecated
-  Map<String, dynamic> get asMap => toJson();
 
   /// Returns a string representation of the [AccountState] object.
   @override

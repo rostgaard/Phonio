@@ -21,10 +21,6 @@ class CallConnected implements Event {
   /// Default constructor.
   CallConnected(this.callId);
 
-  ///
-  @deprecated
-  String get callID => callId;
-
   @override
   String get eventName => _EventJSONKey._callConnected;
 
@@ -32,9 +28,6 @@ class CallConnected implements Event {
   Map<String, dynamic> toJson() => <String, dynamic>{
         _EventJSONKey._callId: callId,
       };
-
-  @deprecated
-  Map<String, dynamic> get asMap => toJson();
 
   @override
   String toString() => toJson().toString();

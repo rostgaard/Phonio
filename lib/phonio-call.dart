@@ -31,15 +31,6 @@ class Call {
 
   Call(this.id, this.callee, this.inbound, this.callerId);
 
-  @deprecated
-  String get ID => id;
-
-  @deprecated
-  String get callerID => callerId;
-
-  @deprecated
-  Map<String, dynamic> get asMap => toJson();
-
   Map<String, dynamic> toJson() => <String, dynamic>{
         CallJSONKey.callID: id,
         CallJSONKey.callee: callee,

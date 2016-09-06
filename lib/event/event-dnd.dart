@@ -24,9 +24,6 @@ class DND implements Event {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{_EventJSONKey._dnd: isOn};
 
-  @deprecated
-  Map<String, dynamic> get asMap => toJson();
-
   @override
   String toString() => toJson().toString();
 }

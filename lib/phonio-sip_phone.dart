@@ -22,13 +22,6 @@ abstract class SIPPhone {
   /// IP address of the phone. Used in contact string.
   String _ipAddress;
 
-  /// Identity of the phone, should be unique for _all_ generalization
-  /// instances.
-  ///
-  /// Use [id] instead.
-  @deprecated
-  int get ID;
-
   int get id;
 
   /// The contact Uri of the phone.
@@ -64,7 +57,9 @@ abstract class SIPPhone {
 
   Future<Null> initialize();
   Future<Null> teardown();
-  Future<Null> finalize();
+  Future<Null> finalize() async {
+    await _eventController.close();
+  }
 
   Future<Null> register({SIPAccount account: null});
   Future<Null> unregister({SIPAccount account: null});

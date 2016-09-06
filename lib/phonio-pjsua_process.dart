@@ -72,10 +72,6 @@ class PJSUAProcess extends SIPPhone {
   @override
   int get id => contact.hashCode;
 
-  @override
-  @deprecated
-  int get ID => id;
-
   /// Storing the currently active calls.
   final Map<int, Call> _calls = <int, Call>{};
 

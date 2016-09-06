@@ -26,18 +26,11 @@ class CallInvite implements Event {
   @override
   String get eventName => _EventJSONKey._callInvite;
 
-  ///
-  @deprecated
-  String get callID => callId;
-
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{
         _EventJSONKey._callId: callId,
         _EventJSONKey._callee: callee
       };
-
-  @deprecated
-  Map<String, dynamic> get asMap => toJson();
 
   @override
   String toString() => toJson().toString();

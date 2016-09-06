@@ -21,9 +21,6 @@ class SIPAccount {
   SIPAccount(this.username, this.password, this.server,
       {bool shouldRegister: false});
 
-  @deprecated
-  Map<String, dynamic> get asMap => toJson();
-
   Map<String, dynamic> toJson() => <String, dynamic>{
         'username': username,
         'password': '${password.runes.first}*****${password.runes.last}',
