@@ -2,8 +2,10 @@ name: phonio
 version: 0.0.91
 author: Kim Rostgaard Christensen (BitStackers)
 description: A basic framework for interfacing with SIP phones.
+
+environment:
+  sdk: ">=1.0.0 <3.0.0"
+
 dependencies:
   logging: any
-  shelf: any
-  shelf_route: any
-  shelf_web_socket: any
+  jaguar: any

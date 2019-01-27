@@ -13,14 +13,13 @@
 
 library phonio;
 
-import 'package:shelf/shelf.dart';
-import 'package:shelf/shelf_io.dart' as shelf_io;
-import 'package:shelf_route/shelf_route.dart' as route;
+import 'package:jaguar/jaguar.dart';
 import 'dart:async';
 import 'dart:io' as io;
 import 'dart:convert';
 import 'dart:collection';
 import 'package:logging/logging.dart';
+
 
 part 'phonio-call.dart';
 part 'phonio-event.dart';
@@ -39,4 +38,7 @@ part 'phonio-sip_phone.dart';
 part 'phonio-snom_phone.dart';
 part 'phonio-snom_action_gateway.dart';
 
+JsonCodec _json = new JsonCodec();
+AsciiCodec _ascii = new AsciiCodec();
+Utf8Codec _utf8 = new Utf8Codec();
 const String _libraryName = 'phonio';

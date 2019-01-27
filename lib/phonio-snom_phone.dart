@@ -245,8 +245,9 @@ class SNOMPhone extends SIPPhone {
     this
         .eventStream
         .firstWhere((Event event) => event is CallOutgoing)
-        .then((CallOutgoing e) {
-      Call call = new Call(e.callId, e.callee, false, defaultAccount.username);
+        .then((Event e) {
+      CallOutgoing callOutgoing = e;
+      Call call = new Call(callOutgoing.callId, callOutgoing.callee, false, defaultAccount.username);
       completer.complete(call);
     }).catchError((dynamic error, StackTrace stackTrace) =>
             completer.completeError(error, stackTrace));
@@ -288,11 +289,15 @@ class SNOMPhone extends SIPPhone {
     switch (request.method.toUpperCase()) {
       case 'GET':
         return _client.get(request.uri)
-          ..whenComplete(() => new Future<String>(dispatchNext));
+          ..whenComplete(() {
+            dispatchNext();
+          });
 
       case 'POST':
         return _client.post(request.uri, request.body)
-          ..whenComplete(() => new Future<String>(dispatchNext));
+          ..whenComplete(() {
+            dispatchNext();
+          });
 
       default:
         throw new StateError('Unsupported HTTP method: ${request.method}');
@@ -313,12 +318,12 @@ class HTTPClientWrapper {
     final Completer<String> completer = new Completer<String>();
 
     client.getUrl(resource).then((io.HttpClientRequest request) {
-      request.headers.set(io.HttpHeaders.CONNECTION, 'keep-alive');
+      request.headers.set(io.HttpHeaders.connectionHeader, 'keep-alive');
       return request.close();
     }).then((io.HttpClientResponse response) {
       String buffer = "";
       try {
-        response.transform(UTF8.decoder).listen((String contents) {
+        response.transform(_utf8.decoder).listen((String contents) {
           buffer = '$buffer$contents';
         }).onDone(() {
           completer.complete(buffer);
@@ -350,7 +355,7 @@ class HTTPClientWrapper {
     client.postUrl(resource).then((io.HttpClientRequest request) {
       request.headers.contentType =
           new io.ContentType('application', 'x-www-form-urlencoded');
-      request.headers.set(io.HttpHeaders.CONNECTION, 'keep-alive');
+      request.headers.set(io.HttpHeaders.connectionHeader, 'keep-alive');
 
       request.write(payload);
 
@@ -358,7 +363,7 @@ class HTTPClientWrapper {
     }).then((io.HttpClientResponse response) {
       String buffer = "";
       if (response.statusCode == 200 || response.statusCode == 302) {
-        response.transform(UTF8.decoder).listen((String contents) {
+        response.transform(_utf8.decoder).listen((String contents) {
           buffer = '$buffer$contents';
         }).onDone(() {
           _log.finest('Completing');

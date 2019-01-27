@@ -285,7 +285,7 @@ class PJSUAProcess extends SIPPhone {
         this
             ._process
             .stdout
-            .transform(ASCII.decoder)
+            .transform(_ascii.decoder)
             .transform(new LineSplitter())
             .listen(_processOutput,
                 onError: (dynamic error) => _localLog.severe('Error:', error));
@@ -293,7 +293,7 @@ class PJSUAProcess extends SIPPhone {
         this
             ._process
             .stderr
-            .transform(ASCII.decoder)
+            .transform(_ascii.decoder)
             .transform(new LineSplitter())
             .listen((String line) {
           _localLog.severe('(pipe, stderr) $line');
@@ -327,7 +327,7 @@ class PJSUAProcess extends SIPPhone {
   void _parseAndDispatch(String line) {
     Map<dynamic, dynamic> map = <dynamic, dynamic>{};
     try {
-      map = JSON.decode(line);
+      map = _json.decode(line);
     } catch (error) {
       _localLog.severe('Failed to parse line: "$line"');
     }
@@ -417,13 +417,13 @@ class PJSUAProcess extends SIPPhone {
     Future<int> trySigTerm() {
       _localLog.info('Process $pid not responding '
           'to QUIT command, Sending SIGTERM');
-      _process.kill((io.ProcessSignal.SIGTERM));
+      _process.kill((io.ProcessSignal.sigterm));
       return waitForTermination();
     }
 
     Future<Null> doSigKill() async {
       _localLog.warning('Sending SIGKILL to ${_process.pid} as a last resort');
-      _process.kill((io.ProcessSignal.SIGKILL));
+      _process.kill((io.ProcessSignal.sigkill));
       await waitForTermination();
     }
 

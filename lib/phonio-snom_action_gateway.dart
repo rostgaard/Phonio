@@ -16,10 +16,10 @@ part of phonio;
 class SNOMActionGateway {
   Map<String, SNOMPhone> phones = <String, SNOMPhone>{};
 
-  SNOMActionGateway(this.phones);
+  SNOMActionGateway(phones);
   String host;
 
-  io.HttpServer _server;
+  Jaguar _server;
 
   Future<io.InternetAddress> get addr =>
       io.NetworkInterface.list().then((List<io.NetworkInterface> nics) {
@@ -27,7 +27,7 @@ class SNOMActionGateway {
       });
 
   Future<io.HttpServer> start({String hostname: '0.0.0.0', int port: 8000}) {
-    final router = route.router()
+    final server = Jaguar(port: port)
       ..get(SNOMActionURL.callOutgoing, callOutgoing)
       ..get('${SNOMActionURL.dnd}/{dnd_state}', dnd)
       ..get('${SNOMActionURL.hook}/{hook_state}', hook)
@@ -40,14 +40,12 @@ class SNOMActionGateway {
       ..get('/phone/list', list)
       ..get('/phone/{id}', get);
 
-    final handler = const Pipeline()
-        .addMiddleware(logRequests())
-        .addHandler(router.handler);
 
     //route.printRoutes(router);
 
-    return shelf_io.serve(handler, hostname, port).then((io.HttpServer server) {
-      host = 'http://${server.address.host}:${server.port}';
+
+    return server.serve().then((_) {
+      host = 'http://${hostname}:${port}';
       _server = server;
     });
   }
@@ -111,41 +109,39 @@ class SNOMActionGateway {
       };
 
   Future<Null> stop({bool force: false}) async {
-    await _server.close(force: force);
+    await _server.close();
   }
 
   /// Called whenever a phone successfully logs in an account.
   ///
   /// Parameters:
   /// uid : the id of the account that was logged in
-  Response accountLogon(Request request) {
-    this
-        .phones[SNOMparameters.user(request)]
+  String accountLogon(Context request) {
+    phones[SNOMparameters.user(request)]
         ._addEvent(new AccountState(SNOMparameters.user(request), true));
 
-    return new Response.ok('');
+    return '';
   }
 
   /// Called whenever a phone successfully logs out of an account.
   ///
   /// Parameters:
   /// uid : the id of the account that was logged in
-  Response accountLogff(Request request) {
-    this
-        .phones[SNOMparameters.user(request)]
+  String accountLogff(Context request) {
+    phones[SNOMparameters.user(request)]
         ._addEvent(new AccountState(SNOMparameters.user(request), false));
 
-    return new Response.ok('');
+    return '';
   }
 
-  Response callOutgoing(Request request) {
+  String callOutgoing(Context request) {
     phones[SNOMparameters.user(request)]._addEvent(new CallOutgoing(
         SNOMparameters.callID(request), SNOMparameters.callee(request)));
 
-    return new Response.ok('');
+    return '';
   }
 
-  Response dnd(Request request) {
+  String dnd(Context request) {
     bool dnd;
     if (SNOMparameters.dnd(request).toLowerCase() == 'on')
       dnd = true;
@@ -153,33 +149,33 @@ class SNOMActionGateway {
 
     phones[SNOMparameters.user(request)]._addEvent(new DND(dnd));
 
-    return new Response.ok('');
+    return '';
   }
 
-  Response callInvite(Request request) {
+  String callInvite(Context request) {
     phones[SNOMparameters.user(request)]._addEvent(new CallInvite(
         SNOMparameters.callID(request), SNOMparameters.callee(request)));
 
-    return new Response.ok('');
+    return '';
   }
 
-  Response callConnected(Request request) {
+  String callConnected(Context request) {
     this
         .phones[SNOMparameters.user(request)]
         ._addEvent(new CallConnected(SNOMparameters.callID(request)));
 
-    return new Response.ok('');
+    return '';
   }
 
-  Response callDisconnected(Request request) {
+  String callDisconnected(Context request) {
     this
         .phones[SNOMparameters.user(request)]
         ._addEvent(new CallDisconnected(SNOMparameters.callID(request)));
 
-    return new Response.ok('');
+    return '';
   }
 
-  Response hook(Request request) {
+  String hook(Context request) {
     bool hook;
     if (SNOMparameters.hook(request).toLowerCase() == 'on')
       hook = true;
@@ -187,40 +183,39 @@ class SNOMActionGateway {
 
     phones[SNOMparameters.user(request)]._addEvent(new DND(hook));
 
-    return new Response.ok('');
+    return '';
   }
 
-  Response callIncoming(Request request) {
+  String callIncoming(Context request) {
     phones[SNOMparameters.user(request)]._addEvent(new CallIncoming(
         SNOMparameters.callID(request), SNOMparameters.callee(request)));
 
-    return new Response.ok('');
+    return '';
   }
 
-  Response get(Request request) => new Response.ok(
-      JSON.encode(phones[route.getPathParameters(request)['id']]));
+  String get(Context request) =>
+      _json.encode(phones[request.pathParams.get('id')]);
 
-  Response list(Request request) => new Response.ok(JSON.encode(phones));
+  String list(Context request) => _json.encode(phones);
 }
 
 abstract class SNOMparameters {
-  static String user(Request request) =>
-      request.requestedUri.queryParameters[SNOM.paramUid];
+  static String user(Context request) =>
+      request.pathParams.get(SNOM.paramUid);
 
-  static String callID(Request request) =>
-      request.requestedUri.queryParameters[SNOM.paramCallId];
+  static String callID(Context request) =>
+      request.pathParams.get(SNOM.paramCallId);
 
-  static String dnd(Request request) =>
-      route.getPathParameters(request)['dnd_state'];
+  static String dnd(Context request) =>
+  request.pathParams.get('dnd_state');
 
-  static String hook(Request request) =>
-      route.getPathParameters(request)['hook_state'];
+  static String hook(Context request) => request.pathParams.get('hook_state');
 
-  static String callee(Request request) =>
-      request.requestedUri.queryParameters[SNOM.paramCallee];
+  static String callee(Context request) =>
+   request.pathParams.get(SNOM.paramCallee);
 
-  static String ipv4(Request request) =>
-      request.requestedUri.queryParameters[SNOM.paramIPv4];
+  static String ipv4(Context request) =>
+      request.pathParams.get(SNOM.paramIPv4);
 }
 
 abstract class SNOM {
